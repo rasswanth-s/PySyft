@@ -53,7 +53,7 @@ def create_lookup_tables(dictionary: dict) -> Tuple[List[str], dict, List[dict]]
 
 def create_new_lookup_tables(
     dictionary: dict,
-) -> Tuple[Deque[str], dict, Deque[dict], Deque[int]]:
+) -> Tuple[Deque[str], dict, Deque[GammaTensor], Deque[int]]:
     index2key: Deque = deque()
     key2index: dict = {}
     index2values: Deque = (
@@ -70,7 +70,7 @@ def create_new_lookup_tables(
     return index2key, key2index, index2values, index2size
 
 
-def no_op(x: Dict[str, GammaTensor]) -> Dict[str, GammaTensor]:
+def no_op(x: jnp.DeviceArray) -> jnp.DeviceArray:
     """A Private input will be initialized with this function.
     Whenever you manipulate a private input (i.e. add it to another private tensor),
     the result will have a different function. Thus we can check to see if the f
@@ -106,11 +106,11 @@ class GammaTensor:
         if len(self.state) == 0:
             self.state[self.id] = self
 
-    def run(self, state: dict) -> Callable:
+    def run(self, vectors: dict) -> Callable:
         # we hit a private input
         if self.func is no_op:
-            return self.func(state[self.id].value)
-        return self.func(state)
+            return self.func(vectors[self.id])
+        return self.func(vectors)
 
     def __add__(self, other: Any) -> GammaTensor:
         state = dict()
@@ -118,8 +118,8 @@ class GammaTensor:
 
         if isinstance(other, GammaTensor):
 
-            def _add(state: dict) -> jax.numpy.DeviceArray:
-                return jnp.add(self.run(state), other.run(state))
+            def _add(vectors: dict) -> jax.numpy.DeviceArray:
+                return jnp.add(self.run(vectors), other.run(vectors))
 
             state.update(other.state)
             value = self.value + other.value
@@ -127,8 +127,8 @@ class GammaTensor:
             max_val = self.max_val + other.max_val
         else:
 
-            def _add(state: dict) -> jax.numpy.DeviceArray:
-                return jnp.add(self.run(state), other)
+            def _add(vectors: dict) -> jax.numpy.DeviceArray:
+                return jnp.add(self.run(vectors), other)
 
             value = self.value + other
             min_val = self.min_val + other
@@ -149,15 +149,15 @@ class GammaTensor:
 
         if isinstance(other, GammaTensor):
 
-            def _mul(state: dict) -> jax.numpy.DeviceArray:
-                return jnp.multiply(self.run(state), other.run(state))
+            def _mul(vectors: dict) -> jax.numpy.DeviceArray:
+                return jnp.multiply(self.run(vectors), other.run(vectors))
 
             state.update(other.state)
             value = self.value * other.value
         else:
 
-            def _mul(state: dict) -> jax.numpy.DeviceArray:
-                return jnp.multiply(self.run(state), other)
+            def _mul(vectors: dict) -> jax.numpy.DeviceArray:
+                return jnp.multiply(self.run(vectors), other)
 
             value = self.value * other
 
@@ -171,8 +171,8 @@ class GammaTensor:
         )
 
     def sum(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
-        def _sum(state: dict) -> jax.numpy.DeviceArray:
-            return jnp.sum(self.run(state))
+        def _sum(vectors: dict) -> jax.numpy.DeviceArray:
+            return jnp.sum(self.run(vectors))
 
         state = dict()
         state.update(self.state)
@@ -191,8 +191,8 @@ class GammaTensor:
         )
 
     def sqrt(self) -> GammaTensor:
-        def _sqrt(state: dict) -> jax.numpy.DeviceArray:
-            return jnp.sqrt(self.run(state))
+        def _sqrt(vectors: dict) -> jax.numpy.DeviceArray:
+            return jnp.sqrt(self.run(vectors))
 
         state = dict()
         state.update(self.state)
@@ -235,8 +235,8 @@ class GammaTensor:
         )
 
     def expand_dims(self, axis: int) -> GammaTensor:
-        def _expand_dims(state: dict) -> jax.numpy.DeviceArray:
-            return jnp.expand_dims(self.run(state), axis)
+        def _expand_dims(vectors: dict) -> jax.numpy.DeviceArray:
+            return jnp.expand_dims(self.run(vectors), axis)
 
         state = dict()
         state.update(self.state)
@@ -251,8 +251,8 @@ class GammaTensor:
         )
 
     def squeeze(self, axis: Optional[int] = None) -> GammaTensor:
-        def _squeeze(state: dict) -> jax.numpy.DeviceArray:
-            return jnp.squeeze(self.run(state), axis)
+        def _squeeze(vectors: dict) -> jax.numpy.DeviceArray:
+            return jnp.squeeze(self.run(vectors), axis)
 
         state = dict()
         state.update(self.state)
@@ -279,35 +279,42 @@ class GammaTensor:
         #     raise Exception
 
         print("Starting JAX JIT")
-        fn = jax.jit(self.func)
+
+        fn = jax.jit(lambda x: self.func(x)[0])
         print("Traced self.func with jax's jit, now calculating gradient")
         grad_fn = jax.grad(fn)
         print("Obtained gradient, creating lookup tables")
         i2k, k2i, i2v, i2s = create_new_lookup_tables(self.state)
 
         print("created lookup tables, now getting bounds")
-        i2minval = jnp.concatenate([x for x in i2v]).reshape(-1, 1)
-        i2maxval = jnp.concatenate([x for x in i2v]).reshape(-1, 1)
-        bounds = jnp.concatenate([i2minval, i2maxval], axis=1)
+
+        # TODO: make this work --> should be faster than for loop
+        '''def duplicate_val(val, j : int):
+            return np.ones(j) * val
+
+        i2minval = jnp.array([x.min_val for x in i2v])
+        i2minval_fun = jax.vmap(duplicate_val) 
+        i2minval = i2minval_fun(i2minval, jnp.array(i2s))
+        print(i2minval)'''
+
+        i2minval = np.array([])
+        i2maxval = np.array([])
+        for (i, s) in enumerate(i2s):
+            i2minval = np.concatenate((i2minval, np.ones(s) * i2v[i].min_val))
+            i2maxval = np.concatenate((i2maxval, np.ones(s) * i2v[i].max_val))
+
+        bounds = jnp.vstack([i2minval, i2maxval]).T
         print("Obtained bounds")
-        # sample_input = i2minval.reshape(-1)
-        _ = i2minval.reshape(-1)
-        print("Obtained all inputs")
 
         def max_grad_fn(input_values: np.ndarray) -> float:
             vectors = {}
             n = 0
             for i, size_param in enumerate(i2s):
-                vectors[i2k[i]] = input_values[n : n + size_param]  # noqa: E203
+                vectors[i2k[i]] = input_values[n: n + size_param]  # noqa: E203
                 n += size_param
-
             grad_pred = grad_fn(vectors)
-
-            m = 0
-            for value in grad_pred.values():
-                m = max(m, jnp.max(value))
-
-            # return negative because we want to maximize instead of minimize
+            grad_res = jnp.array(list(grad_pred.values()))
+            m = jnp.max(grad_res)
             return -m
 
         print("starting SHGO")
