@@ -158,6 +158,22 @@ class lazyrepeatarray:
 
         return self <= other
 
+    def __matmul__(self, other: Any) -> lazyrepeatarray:
+
+        if isinstance(other, lazyrepeatarray):
+            result = self.to_numpy().__matmul__(other.to_numpy())
+            return lazyrepeatarray(data=np.array([result]), shape=result.shape)
+       
+        if isinstance(other, np.ndarray):
+            result = self.to_numpy().__matmul__(other)
+            return lazyrepeatarray(data=np.array([result]), shape=result.shape)
+       
+        if is_acceptable_simple_type(other):
+            result = self.to_numpy().__matmul__(np.array(other))
+            return lazyrepeatarray(data=np.array([result]), shape=result.shape)
+        
+        raise Exception("not sure how to do this yet")
+
     @property
     def dtype(self) -> np.dtype:
         return self.data.dtype
