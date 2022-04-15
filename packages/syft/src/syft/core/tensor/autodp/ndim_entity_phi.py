@@ -400,6 +400,39 @@ class NDimEntityPhiTensor(PassthroughTensor, AutogradTensorAncestor, ADPTensor):
             entities=self.entities,
         )
 
+    def __matmul__(
+        self, other: SupportedChainType
+    ) -> Union[NDimEntityPhiTensor, IntermediateGammaTensor, GammaTensor]:
+
+        # if the tensor being multiplied is also private
+        if isinstance(other, NDimEntityPhiTensor):
+            if self.entities != other.entities:
+                return self.gamma.__matmul__(other.gamma)
+
+            return NDimEntityPhiTensor(
+                child=self.child.__matmul__(other.child),
+                min_vals=self.min_vals.__matmul__(other.min_vals),
+                max_vals=self.max_vals.__matmul__(other.max_vals),
+                entities=self.entities,
+                # scalar_manager=self.scalar_manager,
+            )
+
+        # if the tensor being multiplied is a public tensor / int / float / etc.
+        elif is_acceptable_simple_type(other):
+            return NDimEntityPhiTensor(
+                child=self.child.__matmul__(other),
+                min_vals=self.min_vals.__matmul__(other),
+                max_vals=self.max_vals.__matmul__(other),
+                entities=self.entities,
+                # scalar_manager=self.scalar_manager,
+            )
+
+        elif isinstance(other, IntermediateGammaTensor):
+            return self.gamma.__matmul__(other)
+        else:
+            print("Type is unsupported:", str(type(other)))
+            raise NotImplementedError
+
     def _object2bytes(self) -> bytes:
         schema = get_capnp_schema(schema_file="ndept.capnp")
 

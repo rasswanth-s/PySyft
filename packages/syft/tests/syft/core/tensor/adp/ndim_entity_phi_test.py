@@ -324,3 +324,75 @@ def test_neg(
     assert (neg_tensor.min_vals == reference_tensor.max_vals * -1).all()
     assert (neg_tensor.max_vals == reference_tensor.min_vals * -1).all()
     assert neg_tensor.shape == reference_tensor.shape
+
+
+def test_matmul_tensor_types(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: Entity,
+    highest: int,
+    dims: int,
+) -> None:
+    """Test matrix multiplication of a NDEPT with various other kinds of Tensors"""
+    # TODO: Add tests for GammaTensor, etc when those are built out.
+    reference_tensor = NDEPT(
+        child=reference_data, entities=ishan, max_vals=upper_bound, min_vals=lower_bound
+    )
+
+    simple_tensor = Tensor(child=np.zeros_like(reference_data))
+
+    output_tensor = NDEPT(
+        child=reference_data * 0,
+        entities=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    with pytest.raises(NotImplementedError):
+        result = reference_tensor.__matmul__(simple_tensor)
+        assert isinstance(result, NDEPT), "Resultant tensor is not NDEPT"
+        assert (
+            result.max_vals == reference_tensor.max_vals * 0
+        ), "Resultant tensor has incorrect max_val"
+        assert (
+            result.min_vals == reference_tensor.min_vals * 0
+        ), "Resultant tensor has incorrect min_val"
+        assert (
+            result == output_tensor
+        ), "Matrix Multiplication between NDEPT and Tensor fails"
+
+
+def test_matmul_single_entities(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: Entity,
+) -> None:
+    """Test the matrix multiplication"""
+    tensor1 = NDEPT(
+        child=reference_data, entities=ishan, max_vals=upper_bound, min_vals=lower_bound
+    )
+    tensor2 = NDEPT(
+        child=np.zeros_like(reference_data),
+        entities=ishan,
+        max_vals=np.zeros_like(upper_bound),
+        min_vals=np.zeros_like(lower_bound),
+    )
+
+    result = tensor1.__matmul__(tensor2)
+    output_tensor = NDEPT(
+        child=reference_data * 0,
+        entities=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    assert isinstance(
+        result, NDEPT
+    ), "Matrix Multiplication of two NDEPTs is wrong type"
+    assert (
+        result.max_vals == tensor1.max_vals * 0
+    ).all(), "Matrix Multiplication of two NDEPTs results in incorrect max_val"
+    assert (
+        result.min_vals == tensor1.min_vals * 0
+    ).all(), "Matrix Multiplication of two NDEPTs results in incorrect min_val"
+    assert result == output_tensor, "Matrix Multiplication of two NDEPTs fails"
