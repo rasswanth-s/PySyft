@@ -115,7 +115,6 @@ class NDimEntityPhiTensor(PassthroughTensor, AutogradTensorAncestor, ADPTensor):
         entities: Union[List[Entity], DataSubjectList],
         min_vals: np.ndarray,
         max_vals: np.ndarray,
-        row_type: SingleEntityPhiTensor = SingleEntityPhiTensor,  # type: ignore
     ) -> None:
 
         # child = the actual private data
@@ -339,7 +338,7 @@ class NDimEntityPhiTensor(PassthroughTensor, AutogradTensorAncestor, ADPTensor):
                 # scalar_manager=self.scalar_manager,
             )
 
-        elif isinstance(other, IntermediateGammaTensor):
+        elif isinstance(other, GammaTensor):
             return self.gamma + other
         else:
             print("Type is unsupported:" + str(type(other)))

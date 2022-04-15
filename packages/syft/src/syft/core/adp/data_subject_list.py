@@ -113,6 +113,24 @@ class DataSubjectList:
             entities_indexed.resize(entities.shape)
         return DataSubjectList(one_hot_lookup, entities_indexed)
 
+    @staticmethod
+    def combine(list1: DataSubjectList, list2: DataSubjectList):
+        # We search for any data subjects which might be present in both DSLs
+        overlapping_values = np.searchsorted(list1.one_hot_lookup, list2.one_hot_lookup)
+        offset = len(list1.one_hot_lookup)
+
+        if overlapping_values.min() == offset:
+            # There are no overlapping data subjects, we can just use a constant offset
+            combined_one_hot_lookup = np.concatenate((list1.one_hot_lookup, list2.one_hot_lookup))
+            combined_indices = np.stack(list1.data_subjects_indexed, list2.data_subjects_indexed + offset)
+            return DataSubjectList(one_hot_lookup=combined_one_hot_lookup,
+                                   data_subjects_indexed=combined_indices)
+        else:
+            overlapping_indices = np.where(overlapping_values < offset)
+            new_offset = offset - overlapping_indices
+            
+            pass
+
     # def __getitem__(self, key: Union[int, slice, str]) -> Union[Entity, str]:
     #     return self.one_hot_lookup[self.data_subjects_indexed[key]]
 
