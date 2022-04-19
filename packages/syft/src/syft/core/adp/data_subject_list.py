@@ -114,22 +114,45 @@ class DataSubjectList:
         return DataSubjectList(one_hot_lookup, entities_indexed)
 
     @staticmethod
-    def combine(list1: DataSubjectList, list2: DataSubjectList):
+    def combine(list1: DataSubjectList, list2: DataSubjectList) -> DataSubjectList:
         # We search for any data subjects which might be present in both DSLs
         overlapping_values = np.searchsorted(list1.one_hot_lookup, list2.one_hot_lookup)
         offset = len(list1.one_hot_lookup)
 
         if overlapping_values.min() == offset:
-            # There are no overlapping data subjects, we can just use a constant offset
-            combined_one_hot_lookup = np.concatenate((list1.one_hot_lookup, list2.one_hot_lookup))
-            combined_indices = np.stack(list1.data_subjects_indexed, list2.data_subjects_indexed + offset)
-            return DataSubjectList(one_hot_lookup=combined_one_hot_lookup,
-                                   data_subjects_indexed=combined_indices)
+            if list2.one_hot_lookup.min() > list1.one_hot_lookup.max():
+                # There are no overlapping data subjects, we can just use a constant offset
+
+                combined_one_hot_lookup = np.concatenate((list1.one_hot_lookup, list2.one_hot_lookup))
+                combined_indices = np.stack((list1.data_subjects_indexed, list2.data_subjects_indexed + offset))
+                return DataSubjectList(one_hot_lookup=combined_one_hot_lookup,
+                                       data_subjects_indexed=combined_indices)
+            else:
+                # we have to renumber everything
+                # TODO: Check if this works for [1,3,5,7,9] and [2,4,6,8] - we might still have to renumber everything
+
         else:
-            overlapping_indices = np.where(overlapping_values < offset)
-            new_offset = offset - overlapping_indices
-            
-            pass
+            # TODO: Check if this is actually faster than just recreating the entire DataSubjectList
+            #  using np.unique(np.stack((list1.dsi, list2.dsi)))
+            # I *think* it should be because this method only iterates and renumbers through list2.dsi
+
+            overlapping_values = overlapping_values[overlapping_values < offset]
+            print("These values overlap: ", overlapping_values)
+            new_list2_data_subjects_indexed = np.empty(list2.data_subjects_indexed.max() + 1,
+                                                       dtype=list2.data_subjects_indexed.dtype)
+            new_list2_data_subjects_indexed[overlapping_values] = np.searchsorted(list1.one_hot_lookup,
+                                                                                  overlapping_values)
+
+            combined_one_hot_lookup = np.unique(np.concatenate((list1.one_hot_lookup, list2.one_hot_lookup)))
+            non_overlapping_original_values = np.delete(list2.one_hot_lookup, overlapping_values)
+            print(non_overlapping_original_values, combined_one_hot_lookup, offset)
+            new_list2_data_subjects_indexed[non_overlapping_original_values] = combined_one_hot_lookup[offset:]
+
+            combined_data_subjects_indexed = np.stack(
+                (list1.data_subjects_indexed, new_list2_data_subjects_indexed[list2.data_subjects_indexed]))
+
+            return DataSubjectList(one_hot_lookup=combined_one_hot_lookup,
+                                   data_subjects_indexed=combined_data_subjects_indexed)
 
     # def __getitem__(self, key: Union[int, slice, str]) -> Union[Entity, str]:
     #     return self.one_hot_lookup[self.data_subjects_indexed[key]]
