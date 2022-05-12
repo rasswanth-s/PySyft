@@ -27,13 +27,25 @@ RUN --mount=type=cache,target=/root/.cache if [ $(uname -m) != "x86_64" ]; then 
 RUN --mount=type=cache,target=/root/.cache \
   pip install --user pycapnp==1.1.0;
 
+# SYFT
+WORKDIR /app
+
+# Until we have stable releases, make sure to install syft from source
+COPY syft/setup.py /app/syft/setup.py
+COPY syft/setup.cfg /app/syft/setup.cfg
+COPY syft/src /app/syft/src
+
+# Install syft
+RUN --mount=type=cache,target=/root/.cache \
+  pip install --user -e /app/syft
+
+# BACKEND
 WORKDIR /app
 COPY grid/backend/requirements.txt /app
 
 RUN --mount=type=cache,target=/root/.cache \
   pip install --user -r requirements.txt
 
-# Backend
 FROM python:3.10.4-slim as backend
 COPY --from=build /root/.local /root/.local
 COPY --from=build /usr/local/bin/waitforit /usr/local/bin/waitforit
@@ -67,16 +79,6 @@ WORKDIR /app
 
 # copy grid
 COPY grid/backend /app/
-
-# copy syft
-# until we have stable releases make sure to install syft
-COPY syft/setup.py /app/syft/setup.py
-COPY syft/setup.cfg /app/syft/setup.cfg
-COPY syft/src /app/syft/src
-
-# install syft
-RUN --mount=type=cache,target=/root/.cache \
-  pip install --user -e /app/syft
 
 # change to worker-start.sh or start-reload.sh as needed
 CMD ["bash", "start.sh"]
