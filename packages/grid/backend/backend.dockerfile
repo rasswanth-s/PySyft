@@ -1,4 +1,7 @@
+# PySyft
 FROM python:3.10.4-slim as build
+
+WORKDIR /app
 
 # set UTC timezone
 ENV TZ=Etc/UTC
@@ -25,10 +28,8 @@ RUN --mount=type=cache,target=/root/.cache if [ $(uname -m) != "x86_64" ]; then 
   fi
 
 RUN --mount=type=cache,target=/root/.cache \
-  pip install --user pycapnp==1.1.0;
-
-# SYFT
-WORKDIR /app
+  pip install --user pycapnp==1.1.0; \
+  pip install --user watchdog pyyaml argh;
 
 # Until we have stable releases, make sure to install syft from source
 COPY syft/setup.py /app/syft/setup.py
@@ -46,18 +47,15 @@ COPY grid/backend/requirements.txt /app
 RUN --mount=type=cache,target=/root/.cache \
   pip install --user -r requirements.txt
 
+# PyGrid
 FROM python:3.10.4-slim as backend
+WORKDIR /app
 COPY --from=build /root/.local /root/.local
 COPY --from=build /usr/local/bin/waitforit /usr/local/bin/waitforit
+COPY --from=build /app/syft /app/syft
 
 ENV PYTHONPATH=/app
 ENV PATH=/root/.local/bin:$PATH
-
-RUN --mount=type=cache,sharing=locked,target=/var/cache/apt \
-  DEBIAN_FRONTEND=noninteractive \
-  apt-get update && \
-  apt-get install -y --no-install-recommends \
-  dnsutils iproute2
 
 # copy start scripts and gunicorn conf
 COPY grid/backend/docker-scripts/start.sh /start.sh
@@ -75,10 +73,8 @@ RUN chmod +x /worker-start-reload.sh
 RUN --mount=type=cache,target=/root/.cache \
   pip install --user watchdog pyyaml argh
 
-WORKDIR /app
-
 # copy grid
 COPY grid/backend /app/
 
 # change to worker-start.sh or start-reload.sh as needed
-CMD ["bash", "start.sh"]
+CMD ["bash", "/start.sh"]
