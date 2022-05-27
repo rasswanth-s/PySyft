@@ -239,8 +239,6 @@ def test_serde(
 
     assert de == tensor1
     assert (de.child == tensor1.child).all()
-    assert (de.min_vals == tensor1.min_vals).all()
-    assert (de.max_vals == tensor1.max_vals).all()
     assert de.data_subjects == tensor1.data_subjects
 
     assert np.shares_memory(tensor1.child.child, tensor1.child.child)
@@ -377,3 +375,187 @@ def test_neg(
     assert (neg_tensor.min_vals == reference_tensor.max_vals * -1).all()
     assert (neg_tensor.max_vals == reference_tensor.min_vals * -1).all()
     assert neg_tensor.shape == reference_tensor.shape
+
+
+def test_radd_wrong_types(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+) -> None:
+    """Ensure that addition with incorrect types aren't supported"""
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    with pytest.raises(NotImplementedError):
+        reference_tensor.__radd__("some string")
+        reference_tensor.__radd__(dict())
+        # TODO: Double check how tuples behave during addition/subtraction with np.ndarrays
+
+
+def test_radd_tensor_types(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+    highest: int,
+    dims: int,
+) -> None:
+    """Test addition of a PT with various other kinds of Tensors"""
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    simple_tensor = Tensor(
+        child=np.random.randint(
+            low=-highest, high=highest, size=(dims + 10, dims + 10), dtype=np.int64
+        )
+    )
+
+    with pytest.raises(NotImplementedError):
+        reference_tensor.__radd__(simple_tensor)
+
+
+def test_radd_single_data_subjects(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+) -> None:
+    """Test the addition of PhiTensors"""
+    tensor1 = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    tensor2 = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = tensor2.__radd__(tensor1)
+    assert isinstance(result, PT), "Addition of two PTs is wrong type"
+    assert (
+        result.max_vals == 2 * upper_bound
+    ).all(), "Addition of two PTs results in incorrect max_val"
+    assert (
+        result.min_vals == 2 * lower_bound
+    ).all(), "Addition of two PTs results in incorrect min_val"
+
+    # Try with negative values
+    tensor3 = PT(
+        child=reference_data * -1.5,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = tensor3.__radd__(tensor1)
+    assert isinstance(result, PT), "Addition of two PTs is wrong type"
+    assert (
+        result.max_vals == tensor3.max_vals + tensor1.max_vals
+    ).all(), "PT + PT results in incorrect max_val"
+    assert (
+        result.min_vals == tensor3.min_vals + tensor1.min_vals
+    ).all(), "PT + PT results in incorrect min_val"
+
+
+def test_iadd_wrong_types(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+) -> None:
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    with pytest.raises(NotImplementedError):
+        reference_tensor.__iadd__("some string")
+        reference_tensor.__iadd__(dict())
+
+
+def test_iadd_tensor_types(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+    highest: int,
+    dims: int,
+) -> None:
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    simple_tensor = Tensor(
+        child=np.random.randint(
+            low=-highest, high=highest, size=(dims + 10, dims + 10), dtype=np.int64
+        )
+    )
+
+    with pytest.raises(NotImplementedError):
+        result = reference_tensor.__iadd__(simple_tensor)
+        assert result == reference_tensor, "Assigning failed"
+        assert isinstance(result, PT), "PT + Tensor != PT"
+
+
+def test_iadd_single_data_subjects(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubject,
+) -> None:
+    tensor1 = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+    tensor2 = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = tensor2.__iadd__(tensor1)
+    assert result == tensor2, "Assigning failed"
+    assert isinstance(result, PT), "Addition of two PTs is wrong type"
+    assert (
+        result.max_vals == 2 * upper_bound
+    ).all(), "Addition of two PTs results in incorrect max_val"
+    assert (
+        result.min_vals == 2 * lower_bound
+    ).all(), "Addition of two PTs results in incorrect min_val"
+
+    # Try with negative values
+    tensor3 = PT(
+        child=reference_data * -1.5,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = tensor3.__iadd__(tensor1)
+    assert result == tensor3, "Assigning failed"
+    assert isinstance(result, PT), "Addition of two PTs is wrong type"
+    assert (
+        result.max_vals == 2 * upper_bound
+    ).all(), "PT + PT results in incorrect max_val"
+    assert (
+        result.min_vals == 2 * lower_bound
+    ).all(), "PT + PT results in incorrect min_val"

@@ -137,6 +137,7 @@ class GammaTensor:
             value = self.value + other.value
             min_val = self.min_val + other.min_val
             max_val = self.max_val + other.max_val
+
         else:
 
             def _add(state: dict) -> jax.numpy.DeviceArray:
@@ -154,6 +155,78 @@ class GammaTensor:
             func=_add,
             state=output_state,
         )
+
+    def __radd__(self, other: Any) -> GammaTensor:
+        # relative
+        from .phi_tensor import PhiTensor
+
+        output_state = dict()
+        # Add this tensor to the chain
+        output_state[self.id] = self
+
+        if isinstance(other, GammaTensor):
+
+            def _radd(state: dict) -> jax.numpy.DeviceArray:
+                return jnp.add(other.run(state), self.run(state))
+
+            output_state[other.id] = other
+
+            value = other.value + self.value
+            min_val = other.min_val + self.min_val
+            max_val = other.max_val + self.max_val
+            data_subjects = other.data_subjects
+
+        elif isinstance(other, PhiTensor):
+            return other.gamma + self
+
+        else:
+            print("Type is unsupported:" + str(type(other)))
+            raise NotImplementedError
+
+        return GammaTensor(
+            value=value,
+            data_subjects=data_subjects,
+            min_val=min_val,
+            max_val=max_val,
+            func=_radd,
+            state=output_state,
+        )
+
+    def __iadd__(self, other: Any) -> GammaTensor:
+        output_state = dict()
+        # Add this tensor to the chain
+        output_state[self.id] = self
+
+        if isinstance(other, GammaTensor):
+
+            def _iadd(state: dict) -> jax.numpy.DeviceArray:
+                return jnp.add(self.run(state), other.run(state))
+
+            # print("this is the other.state", other.state)
+            output_state[other.id] = other
+            # state.update(other.state)
+            # print("this is the output_state", output_state)
+
+            value = self.value + other.value
+            min_val = self.min_val + other.min_val
+            max_val = self.max_val + other.max_val
+
+        else:
+
+            def _iadd(state: dict) -> jax.numpy.DeviceArray:
+                return jnp.add(self.run(state), other)
+
+            value = self.value + other
+            min_val = self.min_val + other
+            max_val = self.max_val + other
+
+        self.value = value
+        self.min_val = min_val
+        self.max_val = max_val
+        self.func = _iadd
+        self.state = output_state
+
+        return self
 
     def __mul__(self, other: Any) -> GammaTensor:
         state = dict()
