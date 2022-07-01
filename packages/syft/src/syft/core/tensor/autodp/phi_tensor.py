@@ -657,19 +657,8 @@ class TensorWrappedPhiTensorPointer(Pointer, PassthroughTensor):
         """
         attr_path_and_name = "syft.core.tensor.tensor.Tensor.exp"
 
-        # TODO: should modify to log reduction.
-        def exp_reduction(val: np.ndarray) -> np.ndarray:
-            pos_index = val >= 0
-            neg_index = val < 0
-            exp = np.exp((pos_index * val * -1) + (neg_index * val))
-            pos_values = (pos_index) * exp
-            neg_values = (neg_index) * exp * -1
-            return pos_values + neg_values
-
-        min_vals = self.min_vals.copy()
-        min_vals.data = np.array(exp_reduction(min_vals.data))
-        max_vals = self.max_vals.copy()
-        max_vals.data = np.array(exp_reduction(max_vals.data))
+        min_vals = self.min_vals.exp()
+        max_vals = self.max_vals.exp()
 
         result = TensorWrappedPhiTensorPointer(
             data_subjects=self.data_subjects,
@@ -1705,21 +1694,16 @@ class PhiTensor(PassthroughTensor, ADPTensor):
         # relative
         from ...smpc.approximations import exp
 
-        def exp_reduction(val: np.ndarray) -> np.ndarray:
-            pos_index = val >= 0
-            neg_index = val < 0
-            exp = np.exp((pos_index * val * -1) + (neg_index * val))
-            pos_values = (pos_index) * exp
-            neg_values = (neg_index) * exp * -1
-            return pos_values + neg_values
-
-        min_vals = self.min_vals.copy()
-        min_vals.data = np.array(exp_reduction(min_vals.data))
-        max_vals = self.max_vals.copy()
-        max_vals.data = np.array(exp_reduction(max_vals.data))
+        min_vals = self.min_vals.exp()
+        max_vals = self.max_vals.exp()
+        child = (
+            np.exp(self.child)
+            if isinstance(self.child, np.ndarray)
+            else exp(self.child)
+        )
 
         return PhiTensor(
-            child=exp(self.child),  # type: ignore
+            child=child,  # type: ignore
             min_vals=min_vals,
             max_vals=max_vals,
             data_subjects=self.data_subjects,
@@ -1789,8 +1773,11 @@ class PhiTensor(PassthroughTensor, ADPTensor):
         # this is how we dispatch correct deserialization of bytes
         pt_msg.magicHeader = serde_magic_header(type(self))
 
+        if np.isscalar(self.child):
+            child = np.array(self.child)  # We do not have  serde for scalar types
+
         # We always have FPT as the child of an PT in the tensor chain.
-        chunk_bytes(serialize(self.child, to_bytes=True), "child", pt_msg)  # type: ignore
+        chunk_bytes(serialize(child, to_bytes=True), "child", pt_msg)  # type: ignore
 
         pt_msg.minVals = serialize(self.min_vals, to_bytes=True)
         pt_msg.maxVals = serialize(self.max_vals, to_bytes=True)

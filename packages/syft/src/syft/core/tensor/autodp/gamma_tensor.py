@@ -649,20 +649,8 @@ class TensorWrappedGammaTensorPointer(Pointer, PassthroughTensor):
             Union[TensorWrappedGammaTensorPointer,MPCTensor] : Result of the operation.
         """
         attr_path_and_name = "syft.core.tensor.tensor.Tensor.exp"
-
-        # TODO: should modify to log reduction.
-        def exp_reduction(val: np.ndarray) -> np.ndarray:
-            pos_index = val >= 0
-            neg_index = val < 0
-            exp = np.exp((pos_index * val * -1) + (neg_index * val))
-            pos_values = (pos_index) * exp
-            neg_values = (neg_index) * exp * -1
-            return pos_values + neg_values
-
-        min_vals = self.min_vals.copy()
-        min_vals.data = np.array(exp_reduction(min_vals.data))
-        max_vals = self.max_vals.copy()
-        max_vals.data = np.array(exp_reduction(max_vals.data))
+        min_vals = self.min_vals.exp()
+        max_vals = self.max_vals.exp()
 
         result = TensorWrappedGammaTensorPointer(
             data_subjects=self.data_subjects,
@@ -1345,24 +1333,19 @@ class GammaTensor:
         # relative
         from ...smpc.approximations import exp
 
-        def exp_reduction(val: np.ndarray) -> np.ndarray:
-            pos_index = val >= 0
-            neg_index = val < 0
-            exp = np.exp((pos_index * val * -1) + (neg_index * val))
-            pos_values = (pos_index) * exp
-            neg_values = (neg_index) * exp * -1
-            return pos_values + neg_values
-
-        min_val = self.min_val.copy()
-        min_val.data = np.array(exp_reduction(min_val.data))
-        max_val = self.max_val.copy()
-        max_val.data = np.array(exp_reduction(max_val.data))
+        min_val = self.min_val.exp()
+        max_val = self.max_val.exp()
+        child = (
+            np.exp(self.child)
+            if isinstance(self.child, np.ndarray)
+            else exp(self.child)
+        )
 
         def _exp(state: dict) -> jax.numpy.DeviceArray:
             return jnp.log(self.run(state))
 
         return GammaTensor(
-            child=exp(self.child),
+            child=child,
             min_val=min_val,
             max_val=max_val,
             data_subjects=self.data_subjects,

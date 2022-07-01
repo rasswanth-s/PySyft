@@ -172,6 +172,9 @@ class lazyrepeatarray:
     def copy(self, order: Optional[str] = "K") -> lazyrepeatarray:
         return self.__class__(data=self.data.copy(order=order), shape=self.shape)
 
+    def exp(self) -> lazyrepeatarray:
+        return lazyrepeatarray(data=np.exp(self.data), shape=self.shape)
+
     @property
     def size(self) -> int:
         return np.prod(self.shape)
