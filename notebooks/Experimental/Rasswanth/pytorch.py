@@ -42,6 +42,15 @@ def numpy_to_tensor_pointer(np_arr):
         min_val=10,
         max_val=90,
         data_subjects=data_subjects)
+    data_asset_name = str(uuid1())
+    # owner.load_dataset(
+    #     assets={
+    #         data_asset_name: single_data_subject,
+    #     },
+    #     name="my_data",
+    #     description="description"
+    # )
+    # tensor_pointer = user.datasets[-1][data_asset_name]
     tensor_pointer = single_data_subject.send(owner)
     assert isinstance(tensor_pointer, TensorWrappedPhiTensorPointer)
     return tensor_pointer
@@ -303,6 +312,7 @@ def syf_login():
         return _syf_owner, _syf_user
 
     _syf_owner = sy.login(email="info@openmined.org", password="changethis", port=8081)
+    _syf_owner.datasets.purge(skip_check=True)
     email = str(uuid1())
     password = "pw"
     if email not in [entry['email'] for entry in _syf_owner.users.all()]:
@@ -332,9 +342,9 @@ class NPTensorTest(TestCase):
     def nptensorwrapper_to_torch(self, t, sigma=1e-4):
         # There will be noise!
         owner, user = syf_login()
-        before = user.privacy_budget
+        before = owner.privacy_budget
         ret = t.publish(sigma=sigma)
-        after = user.privacy_budget
+        after = owner.privacy_budget
         assert before - after > 1
         return ret
 
@@ -342,7 +352,7 @@ class NPTensorTest(TestCase):
         # Given OpInfo sample, reproduce sample, but with arguments wrapped
         # Have all the sample inputs in a single data set, where each
         # asset corresponds to a single sample
-        # Returns tuple of just 
+        # Returns tuple of just
         def handle_arg(t):
             if isinstance(t, torch.Tensor):
                 if t.dtype == torch.float32:
@@ -350,48 +360,23 @@ class NPTensorTest(TestCase):
                     t = t.to(torch.float64)
                 np_arr = t.detach().numpy()
                 assert np_arr.ndim != 0
-
                 backend_phi_tensor = sy.Tensor(np_arr)
                 data_subjects = ["abc"] * np_arr.shape[0] if np_arr.ndim != 0 else ["abc"]
                 single_data_subject = backend_phi_tensor.private(
                     min_val=10,
                     max_val=90,
                     data_subjects=data_subjects)
-                return (str(uuid1()), single_data_subject)
+                return DPTensor(single_data_subject.send(owner))
             else:
-                return (None, t)
-
-        owner, user = syf_login()
-        assets = {}
-        all_wrapped_args = []
-        all_wrapped_kwargs = []
-
+                return t
+        owner, _ = syf_login()
+        all_returns = []
         for sample in samples:
             args = [sample.input] + list(sample.args)
             kwargs= sample.kwargs
-            wrapped_args = [handle_arg(arg) for arg in args]
-            wrapped_kwargs = {k: handle_arg(v) for k,v in kwargs.items()}
-            for k, v in wrapped_args + list(wrapped_kwargs.values()):
-                if k is not None:
-                    assets[k] = v
-            all_wrapped_args.append(wrapped_args)
-            all_wrapped_kwargs.append(wrapped_kwargs)
+            all_returns.append(([handle_arg(arg) for arg in args], {k: handle_arg(v) for k,v in kwargs.items()}))
+        return all_returns
 
-        owner.load_dataset(
-            assets=assets,
-            name="my_data",
-            description="description"
-        )
-        # Shouldn't need a sleep here
-        user_assets = user.datasets[-1]
-
-        out_sample_arg_kwargs = []
-        for wrapped_args, wrapped_kwargs in zip(all_wrapped_args, all_wrapped_kwargs):
-            single_out_args = [v if k is None else DPTensor(user_assets[k]) for k, v in wrapped_args]
-            single_out_kwargs = {k: (v_v if v_k is None else DPTensor(user_assets[v_k])) for k, (v_v, v_k) in wrapped_kwargs.items()}
-            out_sample_arg_kwargs.append((single_out_args, single_out_kwargs))
-    
-        return out_sample_arg_kwargs
 
     def torch_to_nptensorwrapper(self, t, single_data_subject=True):
         if not single_data_subject:
