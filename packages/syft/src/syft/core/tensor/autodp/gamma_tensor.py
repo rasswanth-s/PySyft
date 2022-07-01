@@ -1524,10 +1524,10 @@ class GammaTensor:
         if sigma is None:
             sigma = self.child.mean() / 4  # TODO @Ishan: replace this with calibration
 
-        if self.child.dtype != np.int64:
-            raise Exception(
-                "Data type of private values is not np.int64: ", self.child.dtype
-            )
+        # if self.child.dtype != np.int64:
+        #     raise Exception(
+        #         "Data type of private values is not np.int64: ", self.child.dtype
+        #     )
 
         if (
             not self.state
