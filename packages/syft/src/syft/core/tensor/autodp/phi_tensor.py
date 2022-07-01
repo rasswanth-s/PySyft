@@ -1775,6 +1775,8 @@ class PhiTensor(PassthroughTensor, ADPTensor):
 
         if np.isscalar(self.child):
             child = np.array(self.child)  # We do not have  serde for scalar types
+        else:
+            child = self.child
 
         # We always have FPT as the child of an PT in the tensor chain.
         chunk_bytes(serialize(child, to_bytes=True), "child", pt_msg)  # type: ignore
