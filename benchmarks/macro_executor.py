@@ -1,11 +1,16 @@
 # stdlib
 from datetime import date
 import json
+import os
+from pathlib import Path
 import subprocess
 from time import time
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 # third party
-from data import get_data_size
 import pyarrow.parquet as pq
 
 # syft absolute
@@ -14,6 +19,8 @@ from syft.core.adp.data_subject_list import DataSubjectList
 from syft.core.node.common.node_service.user_manager.user_messages import (
     UpdateUserMessage,
 )
+from syft.util import download_file
+from syft.util import get_root_data_path
 
 benchmark_report: dict = {}
 
@@ -21,9 +28,6 @@ today = date.today()
 date = today.strftime("%B %d, %Y")
 
 benchmark_report["date"] = date
-
-key = "1B"
-data_file, key = get_data_size(key)
 
 
 def get_git_revision_short_hash() -> str:
@@ -67,7 +71,6 @@ files, ordered_sizes = download_spicy_bird_benchmark(sizes=[key_size])
 data_file = files[key_size]
 
 benchmark_report["data_row_size"] = key_size
-
 t0 = time()
 df = pq.read_table(data_file)
 end_time = time()
