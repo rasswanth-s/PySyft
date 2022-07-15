@@ -538,6 +538,31 @@ class Tensor(
         else:
             raise ValueError("Tensor Chain does not have softmax function")
 
+    def view_copy(self, *args, **kwargs) -> Tensor:
+        if hasattr(self.child, "view_copy"):
+            return self.__class__(self.child.view_copy(*args, **kwargs))
+        else:
+            raise ValueError("Tensor Chain does not have view_copy function")
+
+    def expand_copy(self, *args, **kwargs) -> Tensor:
+        if hasattr(self.child, "expand_copy"):
+            return self.__class__(self.child.expand_copy(*args, **kwargs))
+        else:
+            raise ValueError("Tensor Chain does not have expand_copy function")
+
+    def squeeze_copy(self, *args, **kwargs) -> Tensor:
+        if hasattr(self.child, "squeeze_copy"):
+            return self.__class__(self.child.squeeze_copy(*args, **kwargs))
+        else:
+            raise ValueError("Tensor Chain does not have squeeze_copy function")
+
+
+    def fill(self, *args, **kwargs) -> Tensor:
+        if hasattr(self.child, "fill"):
+            return self.__class__(self.child.fill(*args, **kwargs))
+        else:
+            raise ValueError("Tensor Chain does not have fill function")
+
     def one_hot(self) -> Tensor:
         if hasattr(self.child, "one_hot"):
             return self.__class__(self.child.one_hot())

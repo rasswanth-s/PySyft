@@ -572,6 +572,120 @@ class TensorWrappedGammaTensorPointer(Pointer, PassthroughTensor):
 
         return result
 
+    def _apply_self_op(self, op_str: str, *args, **kwargs) -> Any:
+
+        attr_path_and_name = f"syft.core.tensor.tensor.Tensor.{op_str}"
+        min_vals = getattr(self.min_vals, op_str)(*args, **kwargs)
+        max_vals = getattr(self.min_vals, op_str)(*args, **kwargs)
+        result = TensorWrappedGammaTensorPointer(
+            data_subjects=self.data_subjects,
+            min_vals=min_vals,
+            max_vals=max_vals,
+            client=self.client,
+        )
+
+        # QUESTION can the id_at_location be None?
+        result_id_at_location = getattr(result, "id_at_location", None)
+
+        if result_id_at_location is not None:
+            # first downcast anything primitive which is not already PyPrimitive
+            (
+                downcast_args,
+                downcast_kwargs,
+            ) = lib.python.util.downcast_args_and_kwargs(args=args, kwargs=kwargs)
+
+            # then we convert anything which isnt a pointer into a pointer
+            pointer_args, pointer_kwargs = pointerize_args_and_kwargs(
+                args=downcast_args,
+                kwargs=downcast_kwargs,
+                client=self.client,
+                gc_enabled=False,
+            )
+
+            cmd = RunClassMethodAction(
+                path=attr_path_and_name,
+                _self=self,
+                args=pointer_args,
+                kwargs=pointer_kwargs,
+                id_at_location=result_id_at_location,
+                address=self.client.address,
+            )
+            self.client.send_immediate_msg_without_reply(msg=cmd)
+
+        inherit_tags(
+            attr_path_and_name=attr_path_and_name,
+            result=result,
+            self_obj=self,
+            args=args,
+            kwargs=kwargs,
+        )
+        dummy_res = np.empty(self.public_shape)
+        if op_str in ["view_copy", "expand_copy", "squeeze_copy"]:
+            dummy_res = dummy_res.copy()
+            op_str = op_str.split("_")[0]
+
+        if op_str == "expand":
+            dummy_res = np.expand_dims(dummy_res, args, **kwargs)
+        else:
+            dummy_res = getattr(dummy_res, op_str)(*args, **kwargs)
+
+        result.public_shape = dummy_res.shape if op_str != "fill" else self.public_shape
+        result.public_dtype = self.public_dtype
+
+        return result
+
+    def view_copy(
+        self,
+        *args: Tuple[Any, ...],
+        **kwargs: Any,
+    ) -> TensorWrappedGammaTensorPointer:
+        """Apply the view operation on self
+
+
+        Returns:
+            Union[TensorWrappedPhiTensorPointer,MPCTensor] : Result of the operation.
+        """
+        return self._apply_self_op("view_copy", *args, **kwargs)
+
+    def expand_copy(
+        self,
+        *args: Tuple[Any, ...],
+        **kwargs: Any,
+    ) -> TensorWrappedGammaTensorPointer:
+        """Apply the expand_copy operation on self
+
+
+        Returns:
+            Union[TensorWrappedPhiTensorPointer,MPCTensor] : Result of the operation.
+        """
+        return self._apply_self_op("expand_copy", *args, **kwargs)
+
+    def squeeze_copy(
+        self,
+        *args: Tuple[Any, ...],
+        **kwargs: Any,
+    ) -> TensorWrappedGammaTensorPointer:
+        """Apply the squeeze_copy operation on self
+
+
+        Returns:
+            Union[TensorWrappedPhiTensorPointer,MPCTensor] : Result of the operation.
+        """
+        return self._apply_self_op("squeeze_copy", *args, **kwargs)
+
+    def fill(
+        self,
+        *args: Tuple[Any, ...],
+        **kwargs: Any,
+    ) -> TensorWrappedGammaTensorPointer:
+        """Apply the fill operation on self
+
+
+        Returns:
+            Union[TensorWrappedPhiTensorPointer,MPCTensor] : Result of the operation.
+        """
+        return self._apply_self_op("fill", *args, **kwargs)
+
     def ones_like(
         self,
         *args: Tuple[Any, ...],
@@ -1463,6 +1577,98 @@ class GammaTensor:
             min_val=min_val,
             max_val=max_val,
             func=_sum,
+            state=output_state,
+        )
+
+    def view_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
+        def _view_copy(state: dict) -> jax.numpy.DeviceArray:
+            res = jnp.copy(self.run(state)).view(*args, *kwargs)
+            return jnp.array(res)
+
+        output_state = dict()
+        output_state[self.id] = self
+        # output_state.update(self.state)
+
+        child = self.child.copy().view(*args, **kwargs)
+
+        min_val = self.min_val.view_copy(*args, **kwargs)
+        max_val = self.max_val.view_copy(*args, **kwargs)
+
+        return GammaTensor(
+            child=child,
+            data_subjects=self.data_subjects,
+            min_val=min_val,
+            max_val=max_val,
+            func=_view_copy,
+            state=output_state,
+        )
+
+    def expand_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
+        def _expand_copy(state: dict) -> jax.numpy.DeviceArray:
+            return jnp.expand_dims(jnp.copy(self.run(state)), *args, *kwargs)
+
+        output_state = dict()
+        output_state[self.id] = self
+        # output_state.update(self.state)
+
+        child = np.expand_dims(self.child.copy(), *args, **kwargs)
+
+        min_val = self.min_val.expand_copy(*args, **kwargs)
+        max_val = self.max_val.expand_copy(*args, **kwargs)
+
+        return GammaTensor(
+            child=child,
+            data_subjects=self.data_subjects,
+            min_val=min_val,
+            max_val=max_val,
+            func=_expand_copy,
+            state=output_state,
+        )
+
+    def squeeze_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
+        def _squeeze_copy(state: dict) -> jax.numpy.DeviceArray:
+            return jnp.squeeze(jnp.copy(self.run(state)), *args, *kwargs)
+
+        output_state = dict()
+        output_state[self.id] = self
+        # output_state.update(self.state)
+
+        child = self.child.copy().squeeze(*args, **kwargs)
+
+        min_val = self.min_val.squeeze_copy(*args, **kwargs)
+        max_val = self.max_val.squeeze_copy(*args, **kwargs)
+
+        return GammaTensor(
+            child=child,
+            data_subjects=self.data_subjects,
+            min_val=min_val,
+            max_val=max_val,
+            func=_squeeze_copy,
+            state=output_state,
+        )
+
+    def fill(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
+        def _fill(state: dict) -> jax.numpy.DeviceArray:
+            res = np.array(self.run(state))
+            res.fill(*args, *kwargs)
+            return jnp.array(res)
+
+        output_state = dict()
+        output_state[self.id] = self
+        # output_state.update(self.state)
+
+        print("child type", type(self.child))
+        self.child.fill(*args, **kwargs)
+
+        min_val = self.min_val.fill(*args, **kwargs)
+        max_val = self.max_val.fill(*args, **kwargs)
+
+        return GammaTensor(
+            child=self.child,
+            data_subjects=self.data_subjects,
+            min_val=min_val,
+            max_val=max_val,
+            func=_fill,
             state=output_state,
         )
 

@@ -183,6 +183,23 @@ class lazyrepeatarray:
         res = np.array(self.to_numpy().sum(*args, **kwargs))
         return lazyrepeatarray(data=res, shape=res.shape)
 
+    def view_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> lazyrepeatarray:
+        res = np.array(self.to_numpy().copy().view(*args, **kwargs))
+        return lazyrepeatarray(data=res, shape=res.shape)
+
+    def expand_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> lazyrepeatarray:
+        res = np.array(np.expand_dims(self.to_numpy().copy(), *args, **kwargs))
+        return lazyrepeatarray(data=res, shape=res.shape)
+
+    def squeeze_copy(self, *args: Tuple[Any, ...], **kwargs: Any) -> lazyrepeatarray:
+        res = np.array(self.to_numpy().copy().squeeze(*args, **kwargs))
+        return lazyrepeatarray(data=res, shape=res.shape)
+
+    def fill(self, *args: Tuple[Any, ...], **kwargs: Any) -> lazyrepeatarray:
+        res = self.to_numpy().copy()
+        res.fill(*args, **kwargs)
+        return lazyrepeatarray(data=res, shape=res.shape)
+
     def ones_like(self, *args: Tuple[Any, ...], **kwargs: Any) -> lazyrepeatarray:
         res = np.array(np.ones_like(self.to_numpy(), *args, **kwargs))
         return lazyrepeatarray(data=res, shape=res.shape)

@@ -186,6 +186,22 @@ def create_tensor_ast(client: Optional[AbstractNodeClient] = None) -> Globals:
             "syft.core.tensor.tensor.Tensor.ones_like",
             "syft.core.tensor.tensor.Tensor",
         ),
+        (
+            "syft.core.tensor.tensor.Tensor.view_copy",
+            "syft.core.tensor.tensor.Tensor",
+        ),
+        (
+            "syft.core.tensor.tensor.Tensor.expand_copy",
+            "syft.core.tensor.tensor.Tensor",
+        ),
+        (
+            "syft.core.tensor.tensor.Tensor.squeeze_copy",
+            "syft.core.tensor.tensor.Tensor",
+        ),
+        (
+            "syft.core.tensor.tensor.Tensor.fill",
+            "syft.core.tensor.tensor.Tensor",
+        ),
         # # SMPC
         # (
         #     "syft.core.tensor.tensor.Tensor.fix_precision",
