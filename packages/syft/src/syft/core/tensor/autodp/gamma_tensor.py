@@ -2158,7 +2158,7 @@ class GammaTensor:
 
         child = self.child.sum(axis=axis, **kwargs)
 
-        min_v = child.min()
+        min_v = self.min_vals.min
         max_v = child.max()
 
         return GammaTensor(

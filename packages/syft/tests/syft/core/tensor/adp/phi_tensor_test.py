@@ -1,5 +1,6 @@
 # stdlib
 # stdlib
+from mimetypes import init
 from typing import Dict
 
 # third party
@@ -1136,17 +1137,23 @@ def test_all(
         min_vals=lower_bound,
     )
 
-    result = (reference_tensor == reference_data).any()
+    result = (reference_tensor == reference_data).all()
     assert result.child
 
-    result = (reference_tensor == reference_data).any(axis=0)
+    result = (reference_tensor == reference_data).all(axis=0)
     assert result.shape == (reference_data.shape[0],)
 
-    result = (reference_tensor == reference_data).any(keepdims=True)
+    result = (reference_tensor == reference_data).all(keepdims=True)
     assert result.shape == (1, 1)
 
-    result = (reference_tensor == reference_data).any(keepdims=True, axis=0)
+    result = (reference_tensor == reference_data).all(keepdims=True, axis=0)
     assert result.shape == (1, reference_tensor.shape[0])
+    
+    #
+    condition = list(np.random.choice(a=[False, True], size=(reference_data.shape[0])))
+    result = (reference_tensor == reference_data).all(where=condition)
+    print(result.data_subjects)
+    assert not result.child
 
 
 def test_and(
@@ -1158,8 +1165,8 @@ def test_and(
     # TODO
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array([reference_data]),
-        data_subjects=np.array([ishan]),
+        child=np.array(reference_data),
+        data_subjects=np.array(ishan),
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1180,8 +1187,8 @@ def test_or(
     # TODO
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array([reference_data]),
-        data_subjects=np.array([ishan]),
+        child=np.array(reference_data),
+        data_subjects=np.array(ishan),
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1191,3 +1198,39 @@ def test_or(
 
     result = reference_tensor | False
     assert (result.child == (reference_data | False)).all()
+
+def test_sum(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubjectArray,
+) -> None:
+    # TODO
+    ishan = np.broadcast_to(ishan, reference_data.shape)
+    reference_tensor = PT(
+        child=np.array(reference_data),
+        data_subjects=np.array(ishan),
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = reference_tensor.sum()
+    assert (result.child == reference_data.sum())
+    
+
+    result = reference_tensor.sum(axis=0)
+    assert (result.child == reference_data.sum(axis=0)).all()
+    
+    result = reference_tensor.sum(keepdims=True)
+    assert (result.child == reference_data.sum(keepdims=True)).all()
+    
+    result = reference_tensor.sum(initial=1)
+    assert (result.child == reference_data.sum(initial=1)).all()
+    
+    condition = list(np.random.choice(a=[False, True], size=(reference_data.shape[0])))
+    # print(condition)
+    result = reference_tensor.sum(initial=0, where=condition)
+    # print(result.child)
+    # print(reference_data.sum(where=condition))
+    assert (result.child == reference_data.sum(initial=0, where=condition))
+    
