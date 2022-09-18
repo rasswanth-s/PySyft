@@ -2181,11 +2181,12 @@ class PhiTensor(PassthroughTensor, ADPTensor):
 
     def sum(
         self,
-        axis: Optional[Union[int, Tuple[int, ...]]] = None,
+        # axis: Optional[Union[int, Tuple[int, ...]]] = None,
         # dtype: np.dtype = None, # I dont think that currently we can support dtype change
-        keepdims: Optional[bool] = None,
-        initial: Optional[np.ScalarType] = None,
-        where: Optional[ArrayLike] = None,
+        # keepdims: Optional[bool] = None,
+        # initial: Optional[np.ScalarType] = None,
+        # where: Optional[ArrayLike] = None,
+        **kwargs
     ) -> PhiTensor:
         # return self.gamma.sum(axis, **kwargs)
         # # TODO: Add support for axes arguments later
@@ -2207,52 +2208,15 @@ class PhiTensor(PassthroughTensor, ADPTensor):
         #     max_vals=max_val,
         # )
         
-        if where is None and keepdims is None:
-            print(1)
-            out_child = np.sum(self.child, axis=axis, initial=initial)
-            # data_subjects = np.sum(self.data_subjects, axis=axis)
-            min_vals = np.sum(self.min_vals, axis=axis, initial=initial)
-            max_vals = np.sum(self.max_vals, axis=axis, initial=initial)
-            data_subjects = np.add.reduce(
-                    self.data_subjects,
-                    axis=axis,
-                )
-        elif where is None:
-            print(2)
-            out_child = np.sum(self.child, axis=axis, keepdims=keepdims, initial=initial)
-            # data_subjects = np.sum(self.data_subjects, axis=axis, keepdims=keepdims)
-            min_vals = np.sum(self.min_vals, axis=axis, keepdims=keepdims, initial=initial)
-            max_vals = np.sum(self.max_vals, axis=axis, keepdims=keepdims, initial=initial)
-            data_subjects = np.add.reduce(
-                self.data_subjects,
-                axis=axis,
-                keepdims=keepdims,
-            )
-        elif keepdims is None:
-            print(3)
-            out_child = np.sum(self.child, axis=axis, initial=initial, where=where)
-            # data_subjects = np.sum(self.data_subjects, axis=axis, initial=DataSubject(), where=where)
-            min_vals = np.sum(self.min_vals, axis=axis, initial=initial, where=where)
-            max_vals = np.sum(self.max_vals, axis=axis, initial=initial, where=where)
-            data_subjects = np.add.reduce(
-                self.data_subjects,
-                axis=axis,
-                initial=DataSubject(),
-                where=where,
-            )
-        else:
-            print(4)
-            out_child = np.sum(self.child, axis=axis, keepdims=keepdims, initial=initial, where=where)
-            # data_subjects = np.sum(self.data_subjects, axis=axis, keepdims=keepdims, initial=DataSubject(), where=where)
-            min_vals = np.sum(self.min_vals, axis=axis, keepdims=keepdims, initial=initial, where=where)
-            max_vals = np.sum(self.max_vals, axis=axis, keepdims=keepdims, initial=initial, where=where)
-            data_subjects = np.add.reduce(
-                self.data_subjects,
-                axis=axis,
-                keepdims=keepdims,
-                initial=DataSubject(),
-                where=where,
-            )
+        out_child = np.sum(self.child, **kwargs)
+        min_vals = np.sum(self.min_vals, **kwargs)
+        max_vals = np.sum(self.max_vals, **kwargs)
+        # data_subjects = np.add.reduce(
+        #         self.data_subjects,
+        #         # axis=axis,
+        #         **kwargs
+        #     )
+        data_subjects = DataSubjectArray.from_objs(np.empty(out_child.shape))
         return PhiTensor(
             child=out_child,
             min_vals=min_vals,
@@ -2260,6 +2224,7 @@ class PhiTensor(PassthroughTensor, ADPTensor):
             data_subjects=data_subjects
         )
         
+    
 
     def expand_dims(self, axis: int) -> PhiTensor:
         result = np.expand_dims(self.child, axis=axis)

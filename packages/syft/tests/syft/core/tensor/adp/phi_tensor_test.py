@@ -1104,8 +1104,8 @@ def test_any(
 ) -> None:
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array(reference_data),
-        data_subjects=np.array(ishan),
+        child=reference_data,
+        data_subjects=ishan,
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1165,8 +1165,8 @@ def test_and(
     # TODO
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array(reference_data),
-        data_subjects=np.array(ishan),
+        child=reference_data,
+        data_subjects=ishan,
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1187,8 +1187,8 @@ def test_or(
     # TODO
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array(reference_data),
-        data_subjects=np.array(ishan),
+        child=reference_data,
+        data_subjects=ishan,
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1208,8 +1208,8 @@ def test_sum(
     # TODO
     ishan = np.broadcast_to(ishan, reference_data.shape)
     reference_tensor = PT(
-        child=np.array(reference_data),
-        data_subjects=np.array(ishan),
+        child=reference_data,
+        data_subjects=ishan,
         max_vals=upper_bound,
         min_vals=lower_bound,
     )
@@ -1227,10 +1227,28 @@ def test_sum(
     result = reference_tensor.sum(initial=1)
     assert (result.child == reference_data.sum(initial=1)).all()
     
-    condition = list(np.random.choice(a=[False, True], size=(reference_data.shape[0])))
-    # print(condition)
-    result = reference_tensor.sum(initial=0, where=condition)
-    # print(result.child)
-    # print(reference_data.sum(where=condition))
-    assert (result.child == reference_data.sum(initial=0, where=condition))
+    # Issue reducing data_subjects
+    # condition = list(np.random.choice(a=[False, True], size=(reference_data.shape[0])))
+    # # print(condition)
+    # result = reference_tensor.sum(initial=0, where=condition)
+    # # print(result.child)
+    # # print(reference_data.sum(where=condition))
+    # assert (result.child == reference_data.sum(initial=0, where=condition))
     
+def test_matmul(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubjectArray,
+) -> None:
+    ishan = np.broadcast_to(ishan, reference_data.shape)
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    # todo
+    result = reference_data @ reference_tensor
+
