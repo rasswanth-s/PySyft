@@ -2169,6 +2169,13 @@ class GammaTensor:
             func_str=func,
             sources=output_state,
         )
+        
+    def trace(
+        
+    ) -> GammaTensor:
+        return GammaTensor(
+            
+        )
 
     def ones_like(self, *args: Tuple[Any, ...], **kwargs: Any) -> GammaTensor:
         func = "ones_like"

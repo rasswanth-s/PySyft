@@ -2223,8 +2223,23 @@ class PhiTensor(PassthroughTensor, ADPTensor):
             max_vals=max_vals,
             data_subjects=data_subjects
         )
-        
-    
+
+    def trace(
+        self,
+        offset: Optional[int] = 0,
+        axis1: Optional[int] = 0,
+        axis2: Optional[int] = 1,
+    ) -> PhiTensor:
+        out_child = np.trace(self.child, offset=offset, axis1=axis1, axis2=axis2)
+        min_vals = np.trace(self.min_vals, offset=offset, axis1=axis1, axis2=axis2)
+        max_vals = np.trace(self.max_vals, offset=offset, axis1=axis1, axis2=axis2)
+        data_subjects= DataSubjectArray.from_objs(np.empty(out_child.shape))
+        return PhiTensor(
+            child=out_child,
+            min_vals=min_vals,
+            max_vals=max_vals,
+            data_subjects = data_subjects
+        )
 
     def expand_dims(self, axis: int) -> PhiTensor:
         result = np.expand_dims(self.child, axis=axis)
