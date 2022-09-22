@@ -38,7 +38,7 @@ from ...adp.data_subject_ledger import DataSubjectLedger
 from ...adp.data_subject_list import DataSubjectList
 from ...adp.data_subject_list import dslarraytonumpyutf8
 from ...adp.data_subject_list import numpyutf8todslarray
-from ...adp.vectorized_publish import publish
+from ...adp.vectorized_publish import simulate_publish
 from ...common.serde.capnp import CapnpModule
 from ...common.serde.capnp import chunk_bytes
 from ...common.serde.capnp import combine_bytes
@@ -2756,7 +2756,7 @@ class GammaTensor:
         ):  # if state tree is empty (e.g. publishing a PhiTensor w/ public vals directly)
             self.sources[self.id] = self
 
-        return publish(
+        return simulate_publish(
             tensor=self,
             ledger=ledger,
             get_budget_for_user=get_budget_for_user,
