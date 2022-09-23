@@ -352,10 +352,9 @@ def test_publish(
     tensor: GammaTensor,
     ledger: DataSubjectLedger,
     get_budget_for_user: Callable,
-    deduct_epsilon_for_user: Callable,
     sigma: float,
     is_linear: bool = True,
-) -> np.ndarray:
+) -> Tuple[float, np.ndarray]:
     """
     This method applies Individual Differential Privacy (IDP) as defined in
     https://arxiv.org/abs/2008.11193
@@ -404,9 +403,6 @@ def test_publish(
         while isinstance(tensor, PassthroughTensor):
             root_child = tensor.child
             tensor = root_child
-        input_entities = tensor.data_subjects
-    elif isinstance(tensor.data_subjects, DataSubjectList):
-        input_entities = tensor.data_subjects.data_subjects_indexed
     else:
         raise NotImplementedError(
             f"Undefined behaviour for data subjects type: {type(tensor.data_subjects)}"
@@ -504,35 +500,7 @@ def test_publish(
                 ]
             ).reshape(original_output.shape)
 
-            # The user spends their privacy budget before getting the result
-            attempts = 0
-            while attempts < 5:
-                attempts += 1
-                try:
-                    ledger.spend_epsilon(
-                        deduct_epsilon_for_user=deduct_epsilon_for_user,
-                        epsilon_spend=epsilon_spend,
-                        old_user_budget=privacy_budget,
-                    )
-                    break
-                except RefreshBudgetException:  # nosec
-                    ledger.spend_epsilon(
-                        deduct_epsilon_for_user=deduct_epsilon_for_user,
-                        epsilon_spend=epsilon_spend,
-                        old_user_budget=privacy_budget,
-                    )
-
-                except Exception as e:
-                    print(f"Problem spending epsilon. {e}")
-                    raise e
-
-            # The RDP constants are adjusted to account for the amount of exposure every
-            # data subject's data has had.
-            ledger.update_rdp_constants(
-                query_constants=rdp_constants, entity_ids_query=input_entities
-            )
-            ledger._write_ledger()
-            return original_output + noise
+            return epsilon_spend, original_output + noise
 
         # Step 4: Path 2 - User doesn't have enough privacy budget.
         elif not has_budget:
@@ -650,24 +618,44 @@ def test_publish(
     return zeros + noise
 
 
-def rms_error(result: np.ndarray, truth: np.ndarray):
+def rms_error(result: np.ndarray, truth: np.ndarray) -> np.ndarray:
     return np.sqrt(truth**2 - result**2)
 
 
+def mse(result: np.ndarray, truth: np.ndarray) -> np.ndarray:
+    return np.mean((truth - result) ** 2)
+
+
 def simulate_publish(
-        tensor: GammaTensor,
-        ledger: DataSubjectLedger,
-        get_budget_for_user: Callable,
-        deduct_epsilon_for_user: Callable,
-        sigma: float,
-        is_linear: bool = True,
-) -> np.ndarray:
+    tensor: GammaTensor,
+    ledger: DataSubjectLedger,
+    get_budget_for_user: Callable,
+    sigma: float,
+    is_linear: bool = True,
+) -> Tuple:
+    """
+    TODO:
+    - Find optimal value of sigma needed to publish
+        - Sweep through various values of sigma to get a bound on where the optimal range lies
+        - Calculate the Pareto front for privacy/utility tradeoff in that bound
+        - From the Pareto front identify the Pareto optimality
+        - Publish using that value
+    """
+
     budget_spends = []
     published_results = []
-    errors = []
-    for sigma in [0.1, 1, 10, 100, 1000, 10_000]:
-        pb_spend, result = publish(tensor, ledger, get_budget_for_user, deduct_epsilon_for_user, sigma, is_linear)
+    rms_errors = []
+    mse_errors = []
+    sigmas = np.logspace(-1, 6, num=7, base=10)
+
+    for index, sigma in enumerate(sigmas):
+        pb_spend, result = test_publish(
+            tensor, ledger, get_budget_for_user, sigma, is_linear
+        )
         budget_spends.append(pb_spend)
         published_results.append(result)
-        # errors.append(rms_error())
-    pass
+        rms_errors.append(rms_error(result, tensor.child))
+        mse_errors.append(mse(result, tensor.child))
+
+    errors = [rms_errors, mse_errors]
+    return budget_spends, published_results, errors

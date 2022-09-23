@@ -2760,7 +2760,6 @@ class GammaTensor:
             tensor=self,
             ledger=ledger,
             get_budget_for_user=get_budget_for_user,
-            deduct_epsilon_for_user=deduct_epsilon_for_user,
             sigma=sigma,
             is_linear=self.is_linear,
         )
