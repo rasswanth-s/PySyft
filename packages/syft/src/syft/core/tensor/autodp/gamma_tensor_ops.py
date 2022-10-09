@@ -33,6 +33,7 @@ class GAMMA_TENSOR_OP(Enum):
     LOGICAL_OR = "logical_or"
     POSITIVE = "positive"
     NEGATIVE = "negative"
+    DIAGONAL = "diagonal"
     MEAN = "mean"
     STD = "std"
     DOT = "dot"

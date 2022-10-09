@@ -1977,6 +1977,57 @@ class PhiTensor(PassthroughTensor, ADPTensor):
             max_vals=lazyrepeatarray(data=self.max_vals.data, shape=output_data.shape),
         )
 
+    def diagonal(self, offset: int = 0, axis1: int = 0, axis2: int = 1) -> PhiTensor:
+        """
+        Return specified diagonals.
+
+        If a is 2-D, returns the diagonal of a with the given offset, i.e., the collection of elements of the form
+        a[i, i+offset]. If a has more than two dimensions, then the axes specified by axis1 and axis2 are used to
+        determine the 2-D sub-array whose diagonal is returned. The shape of the resulting array can be determined by
+        removing axis1 and axis2 and appending an index to the right equal to the size of the resulting diagonals.
+
+        Starting in NumPy 1.9 it returns a read-only view on the original array.
+        Attempting to write to the resulting array will produce an error.
+
+        In some future release, it will return a read/write view and writing to the returned array will alter your
+        original array. The returned array will have the same type as the input array.
+
+        If you don’t write to the array returned by this function, then you can just ignore all of the above.
+
+        If you depend on the current behavior, then we suggest copying the returned array explicitly, i.e.,
+        use np.diagonal(a).copy() instead of just np.diagonal(a). This will work with both past and future NumPy.
+
+        Parameters
+            offset: int, optional
+                Offset of the diagonal from the main diagonal. Can be positive or negative.
+                Defaults to main diagonal (0).
+            axis1: int, optional
+                Axis to be used as the first axis of the 2-D sub-arrays from which the diagonals should be taken.
+                Defaults to first axis (0).
+            axis2: int, optional
+                Axis to be used as the second axis of the 2-D sub-arrays from which the diagonals should be taken.
+                Defaults to second axis (1).
+
+        Returns
+            array_of_diagonals: PhiTensor
+                If a is 2-D, then a 1-D array containing the diagonal and of the same type as a is returned unless a is
+                a matrix, in which case a 1-D array rather than a (2-D) matrix is returned (backward compatibility.)
+
+                If a.ndim > 2, then the dimensions specified by axis1 and axis2 are removed, and a new axis inserted at
+                the end corresponding to the diagonal.
+
+        Raises
+            ValueError
+                If the dimension of a is less than 2.
+        """
+        output = self.child.diagonal(offset, axis1, axis2)
+        return PhiTensor(
+            child=output,
+            data_subjects=self.data_subjects.diagonal(offset, axis1, axis2),
+            min_vals=lazyrepeatarray(data=self.min_vals.data, shape=output.shape),
+            max_vals=lazyrepeatarray(data=self.max_vals.data, shape=output.shape),
+        )
+
     def concatenate(
         self,
         other: Union[np.ndarray, PhiTensor],
