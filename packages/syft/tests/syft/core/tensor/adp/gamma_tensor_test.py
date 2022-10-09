@@ -754,6 +754,41 @@ def test_resize(
     ).all()
 
 
+def test_flatten(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubjectArray,
+) -> None:
+    ishan = np.broadcast_to(ishan, reference_data.shape)
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    ).gamma
+
+    # Default behaviour
+    flattened_array = reference_tensor.flatten()
+
+    target_shape = reference_data.flatten().shape
+    assert (
+        flattened_array.child.shape == target_shape
+    ), "Private data not flattened correctly"
+    assert (
+        flattened_array.min_vals.data == reference_tensor.min_vals.data
+    ), "Min vals changed incorrectly in flatten"
+    assert (
+        flattened_array.max_vals.data == reference_tensor.max_vals.data
+    ), "Max vals changed incorrectly in flatten"
+    assert flattened_array.min_vals.shape == target_shape
+    assert flattened_array.max_vals.shape == target_shape
+    assert flattened_array.data_subjects.shape == target_shape
+    assert (
+        flattened_array.data_subjects == ishan.flatten()
+    ).all(), "Data Subjects not flattened properly"
+
+
 def test_compress(
     reference_data: np.ndarray,
     upper_bound: np.ndarray,
