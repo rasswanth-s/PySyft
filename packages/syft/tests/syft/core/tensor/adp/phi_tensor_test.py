@@ -431,6 +431,42 @@ def test_flatten(
     ).all(), "Data Subjects not flattened properly"
 
 
+def test_diagonal(
+    reference_data: np.ndarray,
+    upper_bound: np.ndarray,
+    lower_bound: np.ndarray,
+    ishan: DataSubjectArray,
+) -> None:
+    ishan = np.broadcast_to(ishan, reference_data.shape)
+    reference_tensor = PT(
+        child=reference_data,
+        data_subjects=ishan,
+        max_vals=upper_bound,
+        min_vals=lower_bound,
+    )
+
+    result = reference_tensor.diagonal()
+    assert (result.child == reference_data.diagonal()).all()
+    assert (result.child >= result.min_vals.data).all()
+    assert (result.child <= result.max_vals.data).all()
+    assert result.data_subjects.shape == result.shape
+    assert (result.data_subjects == ishan).all()
+
+    result = reference_tensor.diagonal(offset=1)
+    assert (result.child == reference_data.diagonal(offset=1)).all()
+    assert (result.child >= result.min_vals.data).all()
+    assert (result.child <= result.max_vals.data).all()
+    assert result.data_subjects.shape == result.shape
+    assert (result.data_subjects == ishan[0, 0]).all()
+
+    result = reference_tensor.diagonal(axis1=1, axis2=0)
+    assert (result.child == reference_data.diagonal(axis1=1, axis2=0)).all()
+    assert (result.child >= result.min_vals.data).all()
+    assert (result.child <= result.max_vals.data).all()
+    assert result.data_subjects.shape == result.shape
+    assert (result.data_subjects == ishan).all()
+
+
 @pytest.mark.arithmetic
 @pytest.mark.public_op
 def test_add_public(
