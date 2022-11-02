@@ -435,23 +435,23 @@ class PhiTensorAncestor(TensorChainManager):
             min_val, max_val, target_shape=self.child.shape
         )
 
-        unique_data_subjects = len(data_subjects.sum())
-        if unique_data_subjects == 1:
-            self.replace_abstraction_top(
-                tensor_type=_PhiTensor(),
-                child=self.child,
-                min_vals=min_vals,
-                max_vals=max_vals,
-                data_subjects=data_subjects,  # type: ignore
-            )  # type: ignore
-        else:
-            self.replace_abstraction_top(
-                tensor_type=_GammaTensor(),
-                child=self.child,
-                min_vals=min_vals,
-                max_vals=max_vals,
-                data_subjects=data_subjects,  # type: ignore
-            )  # type: ignore
+        # unique_data_subjects = len(data_subjects.sum())
+        # if unique_data_subjects == 1:
+        self.replace_abstraction_top(
+            tensor_type=_PhiTensor(),
+            child=self.child,
+            min_vals=min_vals,
+            max_vals=max_vals,
+            data_subjects=data_subjects,  # type: ignore
+        )  # type: ignore
+        # else:
+        #     self.replace_abstraction_top(
+        #         tensor_type=_GammaTensor(),
+        #         child=self.child,
+        #         min_vals=min_vals,
+        #         max_vals=max_vals,
+        #         data_subjects=data_subjects,  # type: ignore
+        #     )  # type: ignore
 
         return self
 
