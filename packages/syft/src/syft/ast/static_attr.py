@@ -8,8 +8,6 @@ from typing import Optional
 from typing import Union
 
 # relative
-from .. import ast
-from .. import lib
 from ..core.common.pointer import AbstractPointer
 from ..core.common.uid import UID
 from ..core.node.common.action.get_or_set_static_attribute_action import (
@@ -20,13 +18,17 @@ from ..core.node.common.action.get_or_set_static_attribute_action import (
 )
 from ..logger import traceback_and_raise
 
+# from .. import ast
+from .attribute import Attribute
+from .callable import Callable
 
-class StaticAttribute(ast.attribute.Attribute):
+
+class StaticAttribute(Attribute):
     """A method, function, or constructor which can be directly executed."""
 
     def __init__(
         self,
-        parent: ast.attribute.Attribute,
+        parent: Attribute,
         path_and_name: str,
         return_type_name: Optional[str] = None,
         client: Optional[Any] = None,
@@ -134,6 +136,9 @@ class StaticAttribute(ast.attribute.Attribute):
         Returns:
             Pointer to the object
         """
+        # relative
+        from ..lib.python.util import downcast
+
         if self.client is None:
             raise ValueError(
                 "MAKE PROPER SCHEMA - Can't get remote value if there is no remote "
@@ -149,7 +154,7 @@ class StaticAttribute(ast.attribute.Attribute):
         if result_id_at_location is None:
             raise Exception("Can't get remote value if there is no id_at_location")
 
-        downcasted_set_arg = lib.python.util.downcast(set_arg)
+        downcasted_set_arg = downcast(set_arg)
         downcasted_set_arg_ptr = downcasted_set_arg.send(self.client)
 
         cmd = GetSetStaticAttributeAction(
@@ -164,7 +169,7 @@ class StaticAttribute(ast.attribute.Attribute):
 
     def __call__(  # type: ignore
         self, action: StaticAttributeAction
-    ) -> Optional[Union["ast.callable.Callable", CallableT]]:
+    ) -> Optional[Union[Callable, CallableT]]:
         """A `StaticAttribute` attribute is not callable.
 
         Args:

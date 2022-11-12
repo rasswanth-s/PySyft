@@ -11,9 +11,12 @@ from typing import Optional
 from typing import Union
 
 # relative
-from .. import ast
 from ..logger import traceback_and_raise
+from .attribute import Attribute
 from .callable import Callable
+from .klass import Class
+from .property import Property
+from .static_attr import StaticAttribute
 
 
 def is_static_method(host_object, attr) -> bool:  # type: ignore
@@ -41,13 +44,13 @@ def is_static_method(host_object, attr) -> bool:  # type: ignore
     return False
 
 
-class Module(ast.attribute.Attribute):
+class Module(Attribute):
     """A module which contains other modules or callables."""
 
     def __init__(
         self,
         client: Optional[Any],
-        parent: Optional[ast.attribute.Attribute] = None,
+        parent: Optional[Attribute] = None,
         path_and_name: Optional[str] = None,
         object_ref: Optional[Union[CallableT, ModuleType]] = None,
         return_type_name: Optional[str] = None,
@@ -183,7 +186,7 @@ class Module(ast.attribute.Attribute):
             if inspect.ismodule(attr_ref):
                 self.add_attr(
                     attr_name=path[index],
-                    attr=ast.module.Module(
+                    attr=Module(
                         path_and_name=".".join(path[: index + 1]),
                         object_ref=attr_ref,
                         return_type_name=return_type_name,
@@ -192,7 +195,7 @@ class Module(ast.attribute.Attribute):
                     ),
                 )
             elif inspect.isclass(attr_ref):
-                klass = ast.klass.Class(
+                klass = Class(
                     path_and_name=".".join(path[: index + 1]),
                     object_ref=attr_ref,
                     return_type_name=return_type_name,
@@ -208,7 +211,7 @@ class Module(ast.attribute.Attribute):
 
                 self.add_attr(
                     attr_name=path[index],
-                    attr=ast.callable.Callable(
+                    attr=Callable(
                         path_and_name=".".join(path[: index + 1]),
                         object_ref=attr_ref,
                         return_type_name=return_type_name,
@@ -220,7 +223,7 @@ class Module(ast.attribute.Attribute):
             elif inspect.isdatadescriptor(attr_ref):
                 self.add_attr(
                     attr_name=path[index],
-                    attr=ast.property.Property(
+                    attr=Property(
                         path_and_name=".".join(path[: index + 1]),
                         object_ref=attr_ref,
                         return_type_name=return_type_name,
@@ -229,7 +232,7 @@ class Module(ast.attribute.Attribute):
                     ),
                 )
             elif index == len(path) - 1:
-                static_attribute = ast.static_attr.StaticAttribute(
+                static_attribute = StaticAttribute(
                     path_and_name=".".join(path[: index + 1]),
                     return_type_name=return_type_name,
                     client=self.client,
@@ -256,7 +259,7 @@ class Module(ast.attribute.Attribute):
             The value of the attribute.
         """
         target_object = super().__getattribute__(item)
-        if isinstance(target_object, ast.static_attr.StaticAttribute):
+        if isinstance(target_object, StaticAttribute):
             return target_object.get_remote_value()
         return target_object
 
@@ -271,7 +274,7 @@ class Module(ast.attribute.Attribute):
             attrs = super().__getattribute__("attrs")
             if key in attrs:
                 target_object = self.attrs[key]
-                if isinstance(target_object, ast.static_attr.StaticAttribute):
+                if isinstance(target_object, StaticAttribute):
                     return target_object.set_remote_value(value)
         return super().__setattr__(key, value)
 
