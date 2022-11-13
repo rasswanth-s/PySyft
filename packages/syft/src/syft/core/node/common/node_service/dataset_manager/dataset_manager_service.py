@@ -10,8 +10,6 @@ from typing import Union
 
 # third party
 from nacl.signing import VerifyKey
-import numpy as np
-import torch as th
 
 # relative
 from ...... import deserialize
@@ -38,54 +36,6 @@ from .dataset_manager_messages import UpdateDatasetMessage
 ENCODING = "UTF-8"
 
 tracer = get_tracer()
-
-
-def _handle_dataset_creation_grid_ui(
-    msg: CreateDatasetMessage, node: DomainInterface, verify_key: VerifyKey
-) -> None:
-
-    file_obj = io.BytesIO(msg.dataset)
-    tar_obj = tarfile.open(fileobj=file_obj)
-    tar_obj.extractall()
-    dataset_id = node.datasets.register(**msg.metadata)
-    for item in tar_obj.getmembers():
-        if not item.isdir():
-            extracted_file = tar_obj.extractfile(item.name)
-            if not extracted_file:
-                # TODO: raise CustomError
-                raise ValueError("Dataset Tar corrupted")
-
-            reader = csv.reader(
-                extracted_file.read().decode().split("\n"),
-                delimiter=",",
-            )
-            dataset = []
-
-            for row in reader:
-                if len(row) != 0:
-                    dataset.append(row)
-            dataset = np.array(dataset, dtype=np.float)
-            df = th.tensor(dataset, dtype=th.float32)
-            id_at_location = UID()
-
-            # Step 2: create message which contains object to send
-            storable = StorableObject(
-                id=id_at_location,
-                data=df,
-                tags=["#" + item.name.split("/")[-1]],
-                search_permissions={VERIFYALL: None},
-                read_permissions={node.verify_key: node.id, verify_key: None},
-                write_permissions={node.verify_key: node.id, verify_key: None},
-            )
-            node.store[storable.id] = storable
-
-            node.datasets.add(
-                name=item.name,
-                dataset_id=str(dataset_id),
-                obj_id=str(id_at_location.value),
-                dtype=df.__class__.__name__,
-                shape=str(tuple(df.shape)),
-            )
 
 
 def _handle_dataset_creation_syft(
