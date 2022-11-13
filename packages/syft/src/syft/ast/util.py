@@ -8,17 +8,15 @@ from typing import List
 from typing import List as TypeList
 from typing import Tuple
 from typing import Union
-
-# third party
-import torch
+import types
 
 # relative
 from ..core.node.common.action.action_sequence import ActionSequence
 from ..core.pointer.pointer import Pointer
 
-module_type = type(torch)
-func_type = type(lambda x: x)
-builtin_func_type = type(torch.ones)
+module_type = types.ModuleType
+func_type = types.FunctionType
+builtin_func_type = types.BuiltinFunctionType
 class_type = type(func_type)
 
 
