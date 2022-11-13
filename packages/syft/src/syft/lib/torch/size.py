@@ -1,7 +1,5 @@
-# third party
-import torch
-
 # relative
+from ...common.ds_libs import torch
 from ...core.common.serde.serializable import serializable
 from ...proto.lib.torch.size_pb2 import Size as TorchSize_PB
 

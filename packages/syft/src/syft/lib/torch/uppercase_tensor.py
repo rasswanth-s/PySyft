@@ -1,9 +1,5 @@
-# stdlib
-
-# third party
-import torch as th
-
 # relative
+from ...common.ds_libs import torch as th
 from ...core.common.serde.serializable import serializable
 from ...logger import warning
 from ...proto.lib.torch.device_pb2 import Device as Device_PB

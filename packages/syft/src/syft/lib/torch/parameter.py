@@ -1,10 +1,6 @@
-# stdlib
-
-# third party
-import torch as th
-from torch.nn import Parameter
-
 # relative
+from ...common.ds_libs import Parameter
+from ...common.ds_libs import torch as th
 from ...core.common.serde.serializable import serializable
 from ...proto.lib.torch.parameter_pb2 import ParameterProto as Parameter_PB
 from .tensor_util import tensor_deserializer

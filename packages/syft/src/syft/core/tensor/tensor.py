@@ -14,7 +14,6 @@ from typing import Union
 # third party
 import numpy as np
 import pandas as pd
-import torch as th
 
 # relative
 from ...ast.util import pointerize_args_and_kwargs
@@ -453,6 +452,8 @@ class Tensor(
         public_dtype: Optional[str] = None,
     ) -> None:
         """data must be a list of numpy array"""
+        # relative
+        from ..common.ds_libs import torch as th
 
         if isinstance(child, list) or np.isscalar(child):
             child = np.array(child)

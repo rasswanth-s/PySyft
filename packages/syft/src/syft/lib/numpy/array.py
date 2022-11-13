@@ -6,7 +6,6 @@ from typing import Union
 from capnp.lib.capnp import _DynamicStructBuilder
 import numpy as np
 import pyarrow as pa
-import torch
 
 # relative
 from ...core.common.serde.capnp import CapnpModule
@@ -140,6 +139,9 @@ def arrow_deserialize(buf: bytes, decompressed_size: int, dtype: str) -> np.ndar
 
 
 def protobuf_serialize(obj: np.ndarray) -> NumpyProto:
+    # relative
+    from ...common.ds_libs import torch
+
     original_dtype = obj.dtype
     if original_dtype not in SUPPORTED_DTYPES:
         raise NotImplementedError(f"{original_dtype} is not supported")

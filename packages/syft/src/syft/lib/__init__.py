@@ -75,8 +75,8 @@ def vendor_requirements_available(vendor_requirements: TypeDict[str, TypeAny]) -
     # see if torch version is supported
     if "torch" in vendor_requirements:
         torch_reqs = vendor_requirements["torch"]
-        # third party
-        import torch
+        # relative
+        from ...common.ds_libs import torch
 
         TORCH_VERSION = version.parse(torch.__version__.split("+")[0])
         min_version = torch_reqs.get("min_version", None)

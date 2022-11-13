@@ -15,13 +15,11 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-import torch
-
 # relative
 from . import utils
 from .... import logger
+from ....common.ds_libs import numpy as np
+from ....common.ds_libs import torch
 from ....grid import GridURL
 from ....lib.numpy.array import capnp_deserialize
 from ....lib.numpy.array import capnp_serialize

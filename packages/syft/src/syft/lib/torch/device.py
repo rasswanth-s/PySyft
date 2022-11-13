@@ -2,10 +2,8 @@
 from typing import Any
 from typing import Optional
 
-# third party
-from torch import device
-
 # relative
+from ...common.ds_libs import device
 from ...core.common.serde.serializable import serializable
 from ...proto.lib.torch.device_pb2 import Device as Device_PB
 

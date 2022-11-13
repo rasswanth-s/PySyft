@@ -1,8 +1,6 @@
-# third party
-import pyarrow as pa
-import torch as th
-
 # relative
+from ...common.ds_libs import pyarrow as pa
+from ...common.ds_libs import torch as th
 from ...experimental_flags import flags
 from ...proto.lib.torch.tensor_pb2 import ProtobufContent
 from ...proto.lib.torch.tensor_pb2 import TensorData

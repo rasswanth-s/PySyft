@@ -2,13 +2,13 @@
 """This module contains utility funtions for Syft's AST submodule."""
 
 # stdlib
+import types
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import List as TypeList
 from typing import Tuple
 from typing import Union
-import types
 
 # relative
 from ..core.node.common.action.action_sequence import ActionSequence

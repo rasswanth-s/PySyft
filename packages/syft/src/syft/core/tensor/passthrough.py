@@ -13,13 +13,10 @@ from typing import Tuple as TypeTuple
 from typing import Type
 from typing import Union
 
-# third party
-import jaxlib
-import numpy as np
-from numpy.typing import ArrayLike
-import torch
-
 # relative
+from ...common.ds_libs import ArrayLike
+from ...common.ds_libs import jaxlib
+from ...common.ds_libs import numpy as np
 from .util import implements
 from .util import query_implementation
 
@@ -28,6 +25,9 @@ SupportedChainType = Union["PassthroughTensor", AcceptableSimpleType]
 
 
 def is_acceptable_simple_type(obj):
+    # relative
+    from ....common.ds_libs import torch
+
     return isinstance(
         obj,
         (

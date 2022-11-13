@@ -5,7 +5,6 @@ from typing import Union
 
 # third party
 from packaging import version
-import torch
 
 # relative
 from . import device  # noqa: 401
@@ -15,6 +14,7 @@ from . import size  # noqa: 401
 from . import uppercase_tensor  # noqa: 401
 from ...ast import add_dynamic_objects
 from ...ast.globals import Globals
+from ...common.ds_libs import torch
 from ...logger import info
 from .allowlist import allowlist
 from .allowlist import dynamic_allowlist

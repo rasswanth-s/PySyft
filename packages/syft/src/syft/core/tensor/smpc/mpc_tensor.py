@@ -15,14 +15,12 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-import numpy.typing as npt
-import torch
-
 # relative
 from . import utils
 from .... import logger
+from ....common.ds_libs import ArrayLike
+from ....common.ds_libs import numpy as np
+from ....common.ds_libs import torch
 from ....grid import GridURL
 from ...node.common.action.przs_action import PRZSAction
 from ...smpc.approximations import APPROXIMATIONS
@@ -869,14 +867,14 @@ class MPCTensor(PassthroughTensor):
 
     def put(
         self,
-        indices: npt.ArrayLike,
-        values: npt.ArrayLike,
+        indices: ArrayLike,
+        values: ArrayLike,
         mode: Optional[str] = "raise",
     ) -> MPCTensor:
         """Performs Numpy put operation on the underlying ShareTensors.
         Args:
-            indices (npt.ArrayLike): Target indices, interpreted as integers.
-            values (npt.ArrayLike): Values to place at target indices.
+            indices (ArrayLike): Target indices, interpreted as integers.
+            values (ArrayLike): Values to place at target indices.
             mode (Optional[str]): Specifies how out-of-bounds indices will behave.
         Returns:
             res (MPCTensor): Result of the operation.

@@ -6,9 +6,9 @@ from typing import List
 
 # third party
 from packaging import version
-import torch
 
 # relative
+from ...common.ds_libs import torch
 from ...core.common.serde.serializable import serializable
 from ...proto.lib.torch.returntypes_pb2 import ReturnTypes as ReturnTypes_PB
 from ..util import full_name_with_name
