@@ -1,7 +1,4 @@
 # stdlib
-import csv
-import io
-import tarfile
 from typing import Callable
 from typing import Dict as TypeDict
 from typing import List
@@ -83,8 +80,8 @@ def create_dataset_msg(
 
     if msg.platform == "syft":
         _handle_dataset_creation_syft(msg, node, verify_key)
-    elif msg.platform == "grid-ui":
-        _handle_dataset_creation_grid_ui(msg, node, verify_key)
+    else:
+        raise Exception("Platform not supported for now ...")
 
     return SuccessResponseMessage(
         address=msg.reply_to,
