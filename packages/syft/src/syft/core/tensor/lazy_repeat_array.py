@@ -10,11 +10,9 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-from scipy.ndimage.interpolation import rotate
-
 # relative
+from ...common.ds_libs import numpy as np
+from ...common.ds_libs import rotate
 from ..common.serde.serializable import serializable
 from .broadcastable import is_broadcastable
 from .config import DEFAULT_FLOAT_NUMPY_TYPE

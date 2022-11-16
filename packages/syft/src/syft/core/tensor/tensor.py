@@ -11,12 +11,11 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-import pandas as pd
-
 # relative
 from ...ast.util import pointerize_args_and_kwargs
+from ...common.ds_libs import numpy as np
+from ...common.ds_libs import pandas as pd
+from ...common.ds_libs import torch as th
 from ...common.lib_ast_shares import downcast_args_and_kwargs
 from ...core.adp.data_subject_ledger import DataSubjectLedger
 from ...util import inherit_tags
@@ -452,9 +451,6 @@ class Tensor(
         public_dtype: Optional[str] = None,
     ) -> None:
         """data must be a list of numpy array"""
-        # relative
-        from ..common.ds_libs import torch as th
-
         if isinstance(child, list) or np.isscalar(child):
             child = np.array(child)
 

@@ -1,5 +1,5 @@
-# third party
-import numpy as np
+# relative
+from ...common.ds_libs import numpy as np
 
 DEFAULT_INT_NUMPY_TYPE = np.int64
 DEFAULT_FLOAT_NUMPY_TYPE = np.float64

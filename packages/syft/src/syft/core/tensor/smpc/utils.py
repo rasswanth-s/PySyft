@@ -10,10 +10,8 @@ from typing import Optional
 from typing import Tuple
 from typing import cast
 
-# third party
-import numpy as np
-
 # relative
+from ....common.ds_libs import numpy as np
 from ..config import DEFAULT_INT_NUMPY_TYPE
 
 RING_SIZE_TO_TYPE: Dict[int, np.dtype] = {

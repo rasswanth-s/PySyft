@@ -12,7 +12,9 @@ import zipfile
 
 # third party
 from nacl.signing import VerifyKey
-import numpy as np
+
+# relative
+from ......common.ds_libs import numpy as np
 
 try:
     # third party

@@ -12,18 +12,16 @@ from typing import ValuesView
 # third party
 import jax
 from jax import numpy as jnp
-import numpy as np
 
 # relative
+from ....common.ds_libs import numpy as np
 from .gamma_tensor_ops import GAMMA_TENSOR_OP
 
 
 def generate_ops() -> Dict[GAMMA_TENSOR_OP, Callable]:
-    # third party
-    from numpy.typing import ArrayLike
-
     # relative
     from . import gamma_tensor as GT
+    from ....common.ds_libs import ArrayLike
     from ..passthrough import AcceptableSimpleType  # type: ignore
 
     JaxableType = Union[GT.GammaTensor, ArrayLike, AcceptableSimpleType]

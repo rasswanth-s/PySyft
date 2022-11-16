@@ -4,11 +4,9 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-from numpy.typing import NDArray
-
 # relative
+from .....common.ds_libs import NDArray
+from .....common.ds_libs import numpy as np
 from ....common.serde.serializable import serializable
 from ...autodp.gamma_tensor import GammaTensor
 from ...autodp.phi_tensor import PhiTensor

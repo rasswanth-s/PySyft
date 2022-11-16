@@ -5,10 +5,8 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-# third party
-from pandas import DataFrame
-
 # relative
+from .....common.ds_libs import DataFrame
 from .....core.common.uid import UID
 from .....grid.client.proxy_client import ProxyClient
 from .....lib.python import String

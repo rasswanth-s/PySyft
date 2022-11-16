@@ -10,12 +10,10 @@ from typing import Set
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-from numpy.typing import ArrayLike
-import pandas as pd
-
 # relative
+from ...common.ds_libs import ArrayLike
+from ...common.ds_libs import numpy as np
+from ...common.ds_libs import pandas as pd
 from ..common.serde.serializable import serializable
 from .data_subject import DataSubject
 

@@ -9,10 +9,8 @@ from typing import List
 from typing import Optional
 from typing import Type
 
-# third party
-from pandas import DataFrame
-
 # relative
+from .....common.ds_libs import DataFrame
 from .....experimental_flags import flags
 from ....common.message import SyftMessage  # type: ignore
 from ...abstract.node import AbstractNodeClient

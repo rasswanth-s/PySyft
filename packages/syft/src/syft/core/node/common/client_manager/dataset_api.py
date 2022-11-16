@@ -8,14 +8,12 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-# third party
-import pandas as pd
-
 # relative
-from ..... import deserialize
+from .....common.ds_libs import DataFrame
 from .....core.tensor.autodp.adp_tensor import ADPTensor
 from .....core.tensor.tensor import Tensor
 from ....common import UID
+from ....common.serde.deserialize import _deserialize as deserialize
 from ....common.serde.serialize import _serialize as serialize  # noqa: F401
 from ...abstract.node import AbstractNodeClient
 from ...enums import RequestAPIFields
@@ -334,8 +332,8 @@ class Dataset:
         self.key = key
 
     @property
-    def pandas(self) -> pd.DataFrame:
-        return pd.DataFrame(self.raw)
+    def pandas(self) -> DataFrame:
+        return DataFrame(self.raw)
 
     @property
     def assets(self) -> Any:

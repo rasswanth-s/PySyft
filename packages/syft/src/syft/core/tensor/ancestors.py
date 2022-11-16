@@ -11,11 +11,9 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Type
 
-# third party
-import numpy as np
-from numpy.typing import ArrayLike
-
 # relative
+from ...common.ds_libs import ArrayLike
+from ...common.ds_libs import numpy as np
 from ..adp.data_subject_ledger import DataSubjectLedger
 from ..adp.data_subject_list import DataSubjectArray
 from .config import DEFAULT_FLOAT_NUMPY_TYPE

@@ -4,15 +4,13 @@ from typing import Any as TypeAny
 from typing import List as TypeList
 from typing import Tuple as TypeTuple
 
-# third party
-import numpy as np
-
 # relative
 from . import array  # noqa: 401
 from ...ast import add_classes
 from ...ast import add_methods
 from ...ast import add_modules
 from ...ast.globals import Globals
+from ...common.ds_libs import numpy as np
 from ..misc.union import UnionGenerator
 from ..util import generic_update_ast
 

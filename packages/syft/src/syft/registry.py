@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING
 from typing import Union
 
 # third party
-import pandas as pd
 import requests
 
 # relative
+from .common.ds_libs import DataFrame
 from .grid import GridURL
 from .logger import error
 from .logger import warning
@@ -98,13 +98,13 @@ class NetworkRegistry:
         on = self.online_networks
         if len(on) == 0:
             return "(no networks online - try syft.networks.all_networks to see offline networks)"
-        return pd.DataFrame(on)._repr_html_()
+        return DataFrame(on)._repr_html_()
 
     def __repr__(self) -> str:
         on = self.online_networks
         if len(on) == 0:
             return "(no networks online - try syft.networks.all_networks to see offline networks)"
-        return pd.DataFrame(on).to_string()
+        return DataFrame(on).to_string()
 
     def create_client(self, network: Dict[str, Any]) -> Client:  # type: ignore
         # relative

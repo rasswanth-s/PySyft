@@ -12,10 +12,10 @@ from typing import Tuple
 # third party
 import jax
 from jax import numpy as jnp
-import numpy as np
-from numpy.typing import ArrayLike
 
 # relative
+from ...common.ds_libs import ArrayLike
+from ...common.ds_libs import numpy as np
 from ...core.node.common.node_manager.user_manager import RefreshBudgetException
 from ...core.tensor.autodp.gamma_tensor_ops import GAMMA_TENSOR_OP
 from ..tensor.fixed_precision_tensor import FixedPrecisionTensor

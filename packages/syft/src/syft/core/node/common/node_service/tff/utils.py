@@ -6,10 +6,8 @@ import shutil
 from typing import Callable
 from typing import Union
 
-# third party
-import numpy as np
-
 # relative
+from ......common.ds_libs import numpy as np
 from ...client import Client
 from .tff_messages import TFFMessageWithReply
 

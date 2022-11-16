@@ -15,10 +15,8 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-
 # relative
+from .....common.ds_libs import numpy as np
 from ....tensor.config import DEFAULT_RING_SIZE
 from ....tensor.smpc.mpc_tensor import MPCTensor
 from ....tensor.smpc.share_tensor import ShareTensor

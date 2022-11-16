@@ -11,14 +11,12 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-from numpy.typing import ArrayLike
-from numpy.typing import NDArray
-from scipy.ndimage.interpolation import rotate
-
 # relative
 from ....ast.util import pointerize_args_and_kwargs
+from ....common.ds_libs import ArrayLike
+from ....common.ds_libs import NDArray
+from ....common.ds_libs import numpy as np
+from ....common.ds_libs import rotate
 from ....common.lib_ast_shares import downcast_args_and_kwargs
 from ....core.adp.data_subject import DataSubject
 from ....core.adp.data_subject_ledger import DataSubjectLedger

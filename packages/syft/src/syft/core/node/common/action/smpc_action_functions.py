@@ -7,10 +7,8 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
-# third party
-import numpy as np
-
 # relative
+from .....common.ds_libs import numpy as np
 from ....common.uid import UID
 from ....store.storeable_object import StorableObject
 from ....tensor.autodp.phi_tensor import PhiTensor

@@ -7,10 +7,8 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-
 # relative
+from ...common.ds_libs import numpy as np
 from ...lib.numpy.array import capnp_deserialize
 from ...lib.numpy.array import capnp_serialize
 from ..common.serde.capnp import CapnpModule

@@ -12,11 +12,11 @@ from typing import Union
 from uuid import UUID
 
 # third party
-import numpy as np
 from tqdm import tqdm
 
 # relative
 from .....ast.klass import get_run_class_method
+from .....common.ds_libs import numpy as np
 from ....common import UID
 from ....tensor.config import DEFAULT_RING_SIZE
 from ....tensor.smpc.mpc_tensor import MPCTensor

@@ -8,7 +8,7 @@ from google.protobuf.reflection import GeneratedProtocolMessageType
 from typing_extensions import final
 
 # relative
-from .....lib.util import full_name_with_qualname
+from .....common.util import full_name_with_qualname
 from .....proto.core.node.common.action.exception_action_pb2 import (
     ExceptionMessage as ExceptionMessage_PB,
 )

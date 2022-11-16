@@ -4,11 +4,9 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-# third party
-import numpy as np
-from numpy.typing import NDArray
-
 # relative
+from ....common.ds_libs import NDArray
+from ....common.ds_libs import numpy as np
 from ...adp.data_subject_list import DataSubjectArray
 from ..autodp.gamma_tensor import GammaTensor
 from ..autodp.phi_tensor import PhiTensor

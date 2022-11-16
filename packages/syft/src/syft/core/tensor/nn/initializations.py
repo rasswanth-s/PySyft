@@ -1,11 +1,9 @@
 # stdlib
 from typing import Tuple
 
-# third party
-import numpy as np
-from numpy.typing import NDArray
-
 # relative
+from ....common.ds_libs import NDArray
+from ....common.ds_libs import numpy as np
 from ...common.serde.serializable import serializable
 
 

@@ -4,10 +4,11 @@ from typing import Union
 
 # third party
 from capnp.lib.capnp import _DynamicStructBuilder
-import numpy as np
-import pyarrow as pa
 
 # relative
+from ...common.ds_libs import numpy as np
+from ...common.ds_libs import pyarrow as pa
+from ...common.util import full_name_with_name
 from ...core.common.serde.capnp import CapnpModule
 from ...core.common.serde.capnp import chunk_bytes
 from ...core.common.serde.capnp import combine_bytes
@@ -15,7 +16,6 @@ from ...core.common.serde.capnp import get_capnp_schema
 from ...core.common.serde.serializable import serializable
 from ...experimental_flags import ApacheArrowCompression
 from ...experimental_flags import flags
-from ...lib.util import full_name_with_name
 from ...proto.lib.numpy.array_pb2 import NumpyProto
 from ...proto.lib.numpy.array_pb2 import NumpyScalar
 from ..torch.tensor_util import tensor_deserializer

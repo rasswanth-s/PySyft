@@ -18,14 +18,14 @@ from typing import Union
 import flax
 import jax
 from jax import numpy as jnp
-import numpy as np
-from numpy.random import randint
-from numpy.typing import ArrayLike
-from numpy.typing import NDArray
-from scipy.optimize import shgo
 
 # relative
 from ....ast.util import pointerize_args_and_kwargs
+from ....common.ds_libs import ArrayLike
+from ....common.ds_libs import NDArray
+from ....common.ds_libs import numpy as np
+from ....common.ds_libs import randint
+from ....common.ds_libs import shgo
 from ....common.lib_ast_shares import downcast_args_and_kwargs
 from ....core.node.common.action.get_or_set_property_action import (
     GetOrSetPropertyAction,

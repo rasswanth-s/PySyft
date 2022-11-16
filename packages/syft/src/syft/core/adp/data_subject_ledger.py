@@ -29,10 +29,10 @@ else:
 import jax
 from jax import numpy as jnp
 from nacl.signing import VerifyKey
-import numpy as np
-from scipy.optimize import minimize_scalar
 
 # relative
+from ...common.ds_libs import minimize_scalar
+from ...common.ds_libs import numpy as np
 from ...core.node.common.node_manager.user_manager import RefreshBudgetException
 from ...lib.numpy.array import capnp_deserialize
 from ...lib.numpy.array import capnp_serialize

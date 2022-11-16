@@ -2,10 +2,8 @@
 from typing import Any
 from typing import Optional
 
-# third party
-import numpy as np
-
 # relative
+from ...common.ds_libs import numpy as np
 from .tensor import Tensor
 from .util import implements
 from .util import inputs2child
