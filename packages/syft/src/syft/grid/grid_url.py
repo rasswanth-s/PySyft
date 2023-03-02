@@ -43,6 +43,9 @@ class GridURL:
             if len(host_or_ip_parts) > 1:
                 port = int(host_or_ip_parts[1])
             host_or_ip = host_or_ip_parts[0]
+            if parts.scheme == "https":
+                port = 443
+
             return GridURL(
                 host_or_ip=host_or_ip,
                 path=parts.path,
