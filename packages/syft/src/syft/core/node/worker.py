@@ -48,6 +48,7 @@ from .new.data_subject_service import DataSubjectService
 from .new.dataset_service import DatasetService
 from .new.dict_document_store import DictStoreConfig
 from .new.document_store import StoreConfig
+from .new.enclave.azure_enclave_service import AzureEnclaveService
 from .new.message_service import MessageService
 from .new.network_service import NetworkService
 from .new.node import NewNode
@@ -164,6 +165,7 @@ class Worker(NewNode):
                 NetworkService,
                 MessageService,
                 ProjectService,
+                AzureEnclaveService,
             ]
             if services is None
             else services
@@ -293,6 +295,7 @@ class Worker(NewNode):
                 UserCodeService,
                 RequestService,
                 OblvService,
+                AzureEnclaveService,
                 DataSubjectService,
                 NetworkService,
                 MessageService,

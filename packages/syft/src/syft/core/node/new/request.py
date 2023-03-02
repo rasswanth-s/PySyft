@@ -29,10 +29,10 @@ from .context import AuthedServiceContext
 from .context import ChangeContext
 from .credentials import SyftVerifyKey
 from .datetime import DateTime
+from .enclave.azure_enclave_service import check_enclave_transfer
 from .linked_obj import LinkedObject
 from .response import SyftError
 from .response import SyftSuccess
-from .task.oblv_service import check_enclave_transfer
 from .transforms import TransformContext
 from .transforms import add_node_uid_for_key
 from .transforms import generate_id

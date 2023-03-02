@@ -31,16 +31,13 @@ from ....common.uid import UID
 from ...common.exceptions import OblvEnclaveError
 from ...common.exceptions import OblvProxyConnectPCRError
 from ..api import SyftAPI
-from ..api import UserNodeView
 from ..client import HTTPConnection
 from ..client import Routes
 from ..context import AuthedServiceContext
-from ..context import ChangeContext
 from ..credentials import SyftSigningKey
 from ..document_store import DocumentStore
 from ..service import AbstractService
 from ..service import service_method
-from ..user_code import UserCode
 from ..user_code import UserCodeStatus
 from .oblv_keys import OblvKeys
 from .oblv_keys_stash import OblvKeysStash
@@ -399,40 +396,3 @@ class OblvService(AbstractService):
                 return res
 
         return Ok(Ok(True))
-
-
-# Checks if the given user code would  propogate value to enclave on acceptance
-def check_enclave_transfer(
-    user_code: UserCode, value: UserCodeStatus, context: ChangeContext
-):
-    if (
-        isinstance(user_code.enclave_metadata, OblvMetadata)
-        and value == UserCodeStatus.EXECUTE
-    ):
-        method = context.node.get_service_method(OblvService.get_api_for)
-
-        api = method(
-            user_code.enclave_metadata,
-            context.node.signing_key,
-        )
-        # send data of the current node to enclave
-        user_node_view = UserNodeView(
-            node_name=context.node.name, verify_key=context.node.signing_key.verify_key
-        )
-        inputs = user_code.input_policy.inputs[user_node_view]
-        action_service = context.node.get_service("actionservice")
-        for var_name, uid in inputs.items():
-            action_object = action_service.store.get(
-                uid=uid, credentials=context.node.signing_key.verify_key
-            )
-            if action_object.is_err():
-                return action_object
-            inputs[var_name] = action_object.ok()
-
-        res = api.services.oblv.send_user_code_inputs_to_enclave(
-            user_code_id=user_code.id, inputs=inputs, node_name=context.node.name
-        )
-
-        return res
-    else:
-        return Ok()

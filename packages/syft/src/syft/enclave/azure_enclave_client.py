@@ -13,6 +13,7 @@ import requests
 
 # relative
 from ..core.common.serde.deserialize import _deserialize as deserialize
+from ..core.common.serde.serializable import serializable
 from ..core.common.uid import UID
 from ..core.node.new.api import SyftAPI
 from ..core.node.new.base import SyftBaseModel
@@ -47,7 +48,7 @@ class EnclaveClient(SyftBaseModel):
     syft_api: Optional[SyftAPI] = None
     # Private _ variables are not accessible by pydantic
 
-    @validator("signing_key")
+    @validator("signing_key", always=True)
     def create_signing_key(cls, v):
         if v is None:
             return SyftSigningKey.generate()
@@ -98,7 +99,7 @@ class EnclaveClient(SyftBaseModel):
         code.id = code_id
         code.enclave_metadata = enclave_metadata
 
-        for domain_client in self.domain_clients:
+        for domain_client in self.owners:
             domain_client.api.services.code.request_code_execution(code=code)
 
         res = self.api.services.code.request_code_execution(code=code)
@@ -106,13 +107,12 @@ class EnclaveClient(SyftBaseModel):
         return res
 
 
+@serializable(recursive_serde=True)
 class AzureEnclaveMetadata(EnclaveMetadata):
     url: str
 
 
 class AzureEnclaveClient(EnclaveClient):
-    pass
-
     def _get_enclave_metadata(self) -> AzureEnclaveMetadata:
         return AzureEnclaveMetadata(url=self.url)
 
