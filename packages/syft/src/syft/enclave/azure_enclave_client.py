@@ -1,6 +1,10 @@
+# future
+from __future__ import annotations
+
 # stdlib
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import cast
 
 # third party
@@ -9,12 +13,23 @@ import requests
 
 # relative
 from ..core.common.serde.deserialize import _deserialize as deserialize
+from ..core.common.uid import UID
 from ..core.node.new.api import SyftAPI
 from ..core.node.new.base import SyftBaseModel
 from ..core.node.new.client import HTTPConnection
 from ..core.node.new.client import Routes
 from ..core.node.new.client import SyftClient
 from ..core.node.new.credentials import SyftSigningKey
+
+if TYPE_CHECKING:
+    # relative
+    from ..core.node.new.user_code import SubmitUserCode
+
+
+class EnclaveMetadata(SyftBaseModel):
+    """Contains metadata to connect to a specific Enclave"""
+
+    pass
 
 
 class EnclaveClient(SyftBaseModel):
@@ -63,6 +78,49 @@ class EnclaveClient(SyftBaseModel):
     def refresh(self) -> None:
         self._set_api()
 
+    def _get_enclave_metadata(self) -> EnclaveMetadata:
+        raise NotImplementedError(
+            "EnclaveClient subclasses must implement _get_enclave_metadata()"
+        )
+
+    def request_code_execution(self, code: SubmitUserCode):
+        # relative
+        from ..core.node.new.user_code import SubmitUserCode
+
+        if not isinstance(code, SubmitUserCode):
+            raise Exception(
+                f"The input code should be of type: {SubmitUserCode} got:{type(code)}"
+            )
+
+        enclave_metadata = self._get_enclave_metadata()
+
+        code_id = UID()
+        code.id = code_id
+        code.enclave_metadata = enclave_metadata
+
+        for domain_client in self.domain_clients:
+            domain_client.api.services.code.request_code_execution(code=code)
+
+        res = self.api.services.code.request_code_execution(code=code)
+
+        return res
+
+
+class AzureEnclaveMetadata(EnclaveMetadata):
+    url: str
+
 
 class AzureEnclaveClient(EnclaveClient):
     pass
+
+    def _get_enclave_metadata(self) -> AzureEnclaveMetadata:
+        return AzureEnclaveMetadata(url=self.url)
+
+    @staticmethod
+    def from_enclave_metadata(
+        enclave_metadata: AzureEnclaveMetadata, signing_key: SyftSigningKey
+    ) -> AzureEnclaveClient:
+        # In the context of Domain Owners, who would like to only communicate with enclave, would not provide owners
+        return AzureEnclaveClient(
+            owners=[], url=enclave_metadata.url, signing_key=signing_key
+        )

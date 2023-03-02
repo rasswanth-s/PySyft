@@ -19,7 +19,6 @@ from typing import cast
 
 # third party
 from oblv import OblvClient
-from pydantic import BaseModel
 from pydantic import validator
 import requests
 
@@ -33,6 +32,7 @@ from ..core.node.new.api import SyftAPI
 from ..core.node.new.client import HTTPConnection
 from ..core.node.new.client import Routes
 from ..core.node.new.client import SyftSigningKey
+from ..enclave.azure_enclave_client import EnclaveMetadata
 from ..util import bcolors
 from .constants import LOCAL_MODE
 from .oblv_proxy import check_oblv_proxy_installation_status
@@ -42,18 +42,9 @@ if TYPE_CHECKING:
     from ..core.node.new.user_code import SubmitUserCode
 
 
-class EnclaveMetadata:
-    """Contains metadata to connect to a specific Enclave"""
-
-    pass
-
-
 @serializable(recursive_serde=True)
-class OblvMetadata(EnclaveMetadata, BaseModel):
+class OblvMetadata(EnclaveMetadata):
     """Contains Metadata to connect to Oblivious Enclave"""
-
-    class Config:
-        arbitrary_types_allowed = True
 
     deployment_id: Optional[str]
     oblv_client: Optional[OblvClient]
